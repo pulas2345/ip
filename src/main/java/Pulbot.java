@@ -34,8 +34,11 @@ public class Pulbot {
                 """;
         System.out.println(banner);
         System.out.println(INDENT + " Hello! I'm PulBot.");
-        System.out.println(INDENT + " What tasks do you want to add to your list?");
-        System.out.println(INDENT + " (Type 'list' to view your list, and 'bye' to exit.)");
+        System.out.println(INDENT + " Enter your tasks and I will add them to your list.");
+        System.out.println(INDENT + "   Type 'list' to view your list.");
+        System.out.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
+        System.out.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
+        System.out.println(INDENT + "   Type 'bye' to exit.");
         System.out.println(SEPARATOR + "\n");
 
         Scanner scanner = new Scanner(System.in);
