@@ -42,6 +42,7 @@ public class Pulbot {
         System.out.println(INDENT + "   Type 'list' to view your list.");
         System.out.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
         System.out.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
+        System.out.println(INDENT + "   Type 'delete <number>' to remove a task.");
         System.out.println(INDENT + "   Type 'bye' to exit.");
         System.out.println(SEPARATOR + "\n");
 
@@ -69,6 +70,12 @@ public class Pulbot {
                     tasks.get(index).markAsNotDone();
                     System.out.println(INDENT + " I've unmarked this task:");
                     System.out.println(INDENT + "   " + tasks.get(index));
+                } else if (input.equals("delete") || input.startsWith("delete ")) {
+                    int index = getTaskIndex(input.substring(6).trim(), tasks.size());
+                    Task removedTask = tasks.remove(index);
+                    System.out.println(INDENT + " I have deleted this task:");
+                    System.out.println(INDENT + "   \u001B[31m" + removedTask + "\u001B[0m");
+                    printTaskCount(tasks.size());
                 } else if (input.equals("list")) {
                     if (tasks.isEmpty()) {
                         System.out.println(INDENT + " Your list is empty.");
