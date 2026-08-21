@@ -40,6 +40,7 @@ public class Pulbot {
 
         Scanner scanner = new Scanner(System.in);
         String[] tasks = new String[100];
+        Boolean[] isMarked = new Boolean[100];
         int taskCount = 0;
 
         while (scanner.hasNextLine()) {
@@ -52,16 +53,43 @@ public class Pulbot {
                 break;
             }
 
-            if (input.equals("list")) {
+            if (input.startsWith("mark ")) {
+                try {
+                    int index = Integer.parseInt(input.substring(5)) - 1;
+                    if (index >= 0 && index < taskCount) {
+                        isMarked[index] = true;
+                        System.out.println(INDENT + " I've marked this task as done:");
+                        System.out.println(INDENT + "   [" + (isMarked[index] ? "\u2713" : " ") + "] " + tasks[index]);
+                    } else {
+                        System.out.println(INDENT + " Invalid task number.");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println(INDENT + " Please provide a valid task number to mark.");
+                }
+            } else if (input.startsWith("unmark ")) {
+                try {
+                    int index = Integer.parseInt(input.substring(7)) - 1;
+                    if (index >= 0 && index < taskCount) {
+                        isMarked[index] = false;
+                        System.out.println(INDENT + " I've unmarked this task:");
+                        System.out.println(INDENT + "   [" + (isMarked[index] ? "\u2713" : " ") + "] " + tasks[index]);
+                    } else {
+                        System.out.println(INDENT + " Invalid task number.");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println(INDENT + " Please provide a valid task number to unmark.");
+                }
+            } else if (input.equals("list")) {
                 if (taskCount == 0) {
                     System.out.println(INDENT + " Your list is empty.");
                 } else {
                     for (int i = 0; i < taskCount; i++) {
-                        System.out.println(INDENT + " " + (i + 1) + ". " + tasks[i]);
+                        System.out.println(INDENT + " " + (i + 1) + ".[" + (isMarked[i] ? "\u2713" : " ") + "] " + tasks[i]);
                     }
                 }
             } else {
                 tasks[taskCount] = input;
+                isMarked[taskCount] = false;
                 taskCount++;
                 System.out.println(INDENT + " added " + input + " to your list.");
             }
