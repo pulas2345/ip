@@ -53,9 +53,13 @@ public class Pulbot {
             }
 
             if (input.equals("list")) {
-                for (int i = 0; i < taskCount; i++) {
-                    System.out.println(INDENT + " " + (i + 1) + ". " + tasks[i]);
-                }              
+                if (taskCount == 0) {
+                    System.out.println(INDENT + " Your list is empty.");
+                } else {
+                    for (int i = 0; i < taskCount; i++) {
+                        System.out.println(INDENT + " " + (i + 1) + ". " + tasks[i]);
+                    }
+                }
             } else {
                 tasks[taskCount] = input;
                 taskCount++;
