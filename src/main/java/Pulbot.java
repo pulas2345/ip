@@ -5,7 +5,7 @@ import java.util.Scanner;
  */
 public class Pulbot {
     private static final String INDENT = "    ";
-    private static final String SEPARATOR = INDENT + "_".repeat(65);
+    private static final String SEPARATOR = INDENT + "_".repeat(80);
 
     /**
      * Runs Pulbot until the user enters "bye" command.
@@ -52,84 +52,69 @@ public class Pulbot {
             String input = scanner.nextLine();
             System.out.println(SEPARATOR);
 
-            if (input.equals("bye")) {
-                System.out.println(INDENT + " Bye. Hope to see you again soon!");
-                System.out.println(SEPARATOR + "\n");
-                break;
-            }
+            try {
+                if (input.equals("bye")) {
+                    System.out.println(INDENT + " So soon? Just say you hate me. Bye.");
+                    System.out.println(SEPARATOR + "\n");
+                    break;
+                }
 
-            if (input.startsWith("mark ")) {
-                try {
-                    int index = Integer.parseInt(input.substring(5)) - 1;
-                    if (index >= 0 && index < taskCount) {
-                        tasks[index].markAsDone();
-                        System.out.println(INDENT + " I've marked this task as done:");
-                        System.out.println(INDENT + "   " + tasks[index]);
+                if (input.equals("mark") || input.startsWith("mark ")) {
+                    int index = getTaskIndex(input.substring(4).trim(), taskCount);
+                    tasks[index].markAsDone();
+                    System.out.println(INDENT + " I've marked this task as done:");
+                    System.out.println(INDENT + "   " + tasks[index]);
+                } else if (input.equals("unmark") || input.startsWith("unmark ")) {
+                    int index = getTaskIndex(input.substring(6).trim(), taskCount);
+                    tasks[index].markAsNotDone();
+                    System.out.println(INDENT + " I've unmarked this task:");
+                    System.out.println(INDENT + "   " + tasks[index]);
+                } else if (input.equals("list")) {
+                    if (taskCount == 0) {
+                        System.out.println(INDENT + " Your list is empty.");
                     } else {
-                        System.out.println(INDENT + " Invalid task number.");
+                        System.out.println(INDENT + " Here are the tasks in your list:");
+                        for (int i = 0; i < taskCount; i++) {
+                            System.out.println(INDENT + " " + (i + 1) + "." + tasks[i]);
+                        }
                     }
-                } catch (NumberFormatException e) {
-                    System.out.println(INDENT + " Please provide a valid task number to mark.");
-                }
-            } else if (input.startsWith("unmark ")) {
-                try {
-                    int index = Integer.parseInt(input.substring(7)) - 1;
-                    if (index >= 0 && index < taskCount) {
-                        tasks[index].markAsNotDone();
-                        System.out.println(INDENT + " I've unmarked this task:");
-                        System.out.println(INDENT + "   " + tasks[index]);
-                    } else {
-                        System.out.println(INDENT + " Invalid task number.");
+                } else if (input.equals("todo") || input.startsWith("todo ")) {
+                    String description = input.substring(4).trim();
+                    if (description.isEmpty()) {
+                        throw new PulbotException("Please include a description.");
                     }
-                } catch (NumberFormatException e) {
-                    System.out.println(INDENT + " Please provide a valid task number to unmark.");
-                }
-            } else if (input.equals("list")) {
-                if (taskCount == 0) {
-                    System.out.println(INDENT + " Your list is empty.");
-                } else {
-                    System.out.println(INDENT + " Here are the tasks in your list:");
-                    for (int i = 0; i < taskCount; i++) {
-                        System.out.println(INDENT + " " + (i + 1) + "." + tasks[i]);
-                    }
-                }
-            } else if (input.startsWith("todo ")) {
-                String description = input.substring(5).trim();
-                if (description.isEmpty()) {
-                    System.out.println(INDENT + " A todo needs a description.");
-                } else {
                     tasks[taskCount] = new Todo(description);
                     taskCount++;
                     printAddedTask(tasks[taskCount - 1], taskCount);
-                }
-            } else if (input.startsWith("deadline ")) {
-                String details = input.substring(9).trim();
-                int byIndex = details.indexOf(" /by ");
-                if (byIndex <= 0 || byIndex + 5 >= details.length()) {
-                    System.out.println(INDENT + " Use: deadline <description> /by <when>");
-                } else {
+                } else if (input.equals("deadline") || input.startsWith("deadline ")) {
+                    String details = input.substring(8).trim();
+                    int byIndex = details.indexOf(" /by ");
+                    if (byIndex <= 0 || byIndex + 5 >= details.length()) {
+                        throw new PulbotException("Please use: deadline <description> /by <when>.");
+                    }
                     String description = details.substring(0, byIndex).trim();
                     String by = details.substring(byIndex + 5).trim();
                     tasks[taskCount] = new Deadline(description, by);
                     taskCount++;
                     printAddedTask(tasks[taskCount - 1], taskCount);
-                }
-            } else if (input.startsWith("event ")) {
-                String details = input.substring(6).trim();
-                int fromIndex = details.indexOf(" /from ");
-                int toIndex = details.indexOf(" /to ", fromIndex + 7);
-                if (fromIndex <= 0 || toIndex <= fromIndex + 7 || toIndex + 5 >= details.length()) {
-                    System.out.println(INDENT + " Use: event <description> /from <start> /to <end>");
-                } else {
+                } else if (input.equals("event") || input.startsWith("event ")) {
+                    String details = input.substring(5).trim();
+                    int fromIndex = details.indexOf(" /from ");
+                    int toIndex = details.indexOf(" /to ", fromIndex + 7);
+                    if (fromIndex <= 0 || toIndex <= fromIndex + 7 || toIndex + 5 >= details.length()) {
+                        throw new PulbotException("Please use: event <description> /from <start> /to <end>.");
+                    }
                     String description = details.substring(0, fromIndex).trim();
                     String from = details.substring(fromIndex + 7, toIndex).trim();
                     String to = details.substring(toIndex + 5).trim();
                     tasks[taskCount] = new Event(description, from, to);
                     taskCount++;
                     printAddedTask(tasks[taskCount - 1], taskCount);
+                } else {
+                    throw new PulbotException("Invalid command. Please read the instructions and try again.");
                 }
-            } else {
-                System.out.println(INDENT + " Unknown command.");
+            } catch (PulbotException e) {
+                System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + e.getMessage());
             }
 
             System.out.println(SEPARATOR + "\n");
@@ -142,5 +127,17 @@ public class Pulbot {
         System.out.println(INDENT + "   " + task);
         String taskWord = taskCount == 1 ? "task" : "tasks";
         System.out.println(INDENT + " Now you have " + taskCount + " " + taskWord + " in the list.");
+    }
+
+    private static int getTaskIndex(String number, int taskCount) throws PulbotException {
+        try {
+            int index = Integer.parseInt(number) - 1;
+            if (index < 0 || index >= taskCount) {
+                throw new PulbotException("There is no task with that number. Please enter a valid task number.");
+            }
+            return index;
+        } catch (NumberFormatException e) {
+            throw new PulbotException("Please enter a valid task number.");
+        }
     }
 }
