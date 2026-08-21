@@ -42,13 +42,14 @@ public class Pulbot {
             String input = scanner.nextLine();
             System.out.println(SEPARATOR);
 
-            System.out.println(INDENT + " " + input);
-            System.out.println(SEPARATOR + "\n");
-
             if (input.equals("bye")) {
                 System.out.println(INDENT + " Bye. Hope to see you again soon!");
                 System.out.println(SEPARATOR + "\n");
+                break;
             }
+
+            System.out.println(INDENT + " " + input);
+            System.out.println(SEPARATOR + "\n");
         }
         scanner.close();
     }
