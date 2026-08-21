@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -45,8 +46,7 @@ public class Pulbot {
         System.out.println(SEPARATOR + "\n");
 
         Scanner scanner = new Scanner(System.in);
-        Task[] tasks = new Task[100];
-        int taskCount = 0;
+        ArrayList<Task> tasks = new ArrayList<>();
 
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine();
@@ -60,22 +60,22 @@ public class Pulbot {
                 }
 
                 if (input.equals("mark") || input.startsWith("mark ")) {
-                    int index = getTaskIndex(input.substring(4).trim(), taskCount);
-                    tasks[index].markAsDone();
+                    int index = getTaskIndex(input.substring(4).trim(), tasks.size());
+                    tasks.get(index).markAsDone();
                     System.out.println(INDENT + " I've marked this task as done:");
-                    System.out.println(INDENT + "   " + tasks[index]);
+                    System.out.println(INDENT + "   " + tasks.get(index));
                 } else if (input.equals("unmark") || input.startsWith("unmark ")) {
-                    int index = getTaskIndex(input.substring(6).trim(), taskCount);
-                    tasks[index].markAsNotDone();
+                    int index = getTaskIndex(input.substring(6).trim(), tasks.size());
+                    tasks.get(index).markAsNotDone();
                     System.out.println(INDENT + " I've unmarked this task:");
-                    System.out.println(INDENT + "   " + tasks[index]);
+                    System.out.println(INDENT + "   " + tasks.get(index));
                 } else if (input.equals("list")) {
-                    if (taskCount == 0) {
+                    if (tasks.isEmpty()) {
                         System.out.println(INDENT + " Your list is empty.");
                     } else {
                         System.out.println(INDENT + " Here are the tasks in your list:");
-                        for (int i = 0; i < taskCount; i++) {
-                            System.out.println(INDENT + " " + (i + 1) + "." + tasks[i]);
+                        for (int i = 0; i < tasks.size(); i++) {
+                            System.out.println(INDENT + " " + (i + 1) + "." + tasks.get(i));
                         }
                     }
                 } else if (input.equals("todo") || input.startsWith("todo ")) {
@@ -83,9 +83,9 @@ public class Pulbot {
                     if (description.isEmpty()) {
                         throw new PulbotException("Please include a description.");
                     }
-                    tasks[taskCount] = new Todo(description);
-                    taskCount++;
-                    printAddedTask(tasks[taskCount - 1], taskCount);
+                    Task task = new Todo(description);
+                    tasks.add(task);
+                    printAddedTask(task, tasks.size());
                 } else if (input.equals("deadline") || input.startsWith("deadline ")) {
                     String details = input.substring(8).trim();
                     int byIndex = details.indexOf(" /by ");
@@ -94,9 +94,9 @@ public class Pulbot {
                     }
                     String description = details.substring(0, byIndex).trim();
                     String by = details.substring(byIndex + 5).trim();
-                    tasks[taskCount] = new Deadline(description, by);
-                    taskCount++;
-                    printAddedTask(tasks[taskCount - 1], taskCount);
+                    Task task = new Deadline(description, by);
+                    tasks.add(task);
+                    printAddedTask(task, tasks.size());
                 } else if (input.equals("event") || input.startsWith("event ")) {
                     String details = input.substring(5).trim();
                     int fromIndex = details.indexOf(" /from ");
@@ -107,9 +107,9 @@ public class Pulbot {
                     String description = details.substring(0, fromIndex).trim();
                     String from = details.substring(fromIndex + 7, toIndex).trim();
                     String to = details.substring(toIndex + 5).trim();
-                    tasks[taskCount] = new Event(description, from, to);
-                    taskCount++;
-                    printAddedTask(tasks[taskCount - 1], taskCount);
+                    Task task = new Event(description, from, to);
+                    tasks.add(task);
+                    printAddedTask(task, tasks.size());
                 } else {
                     throw new PulbotException("Invalid command. Please read the instructions and try again.");
                 }
@@ -125,6 +125,10 @@ public class Pulbot {
     private static void printAddedTask(Task task, int taskCount) {
         System.out.println(INDENT + " I have added this task:");
         System.out.println(INDENT + "   " + task);
+        printTaskCount(taskCount);
+    }
+
+    private static void printTaskCount(int taskCount) {
         String taskWord = taskCount == 1 ? "task" : "tasks";
         System.out.println(INDENT + " Now you have " + taskCount + " " + taskWord + " in the list.");
     }
