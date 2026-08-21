@@ -35,6 +35,7 @@ public class Pulbot {
         System.out.println(banner);
         System.out.println(INDENT + " Hello! I'm PulBot.");
         System.out.println(INDENT + " Enter your tasks and I will add them to your list.");
+        System.out.println(INDENT + "   Type 'todo <description>' to add a todo.");
         System.out.println(INDENT + "   Type 'list' to view your list.");
         System.out.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
         System.out.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
@@ -85,18 +86,33 @@ public class Pulbot {
                 if (taskCount == 0) {
                     System.out.println(INDENT + " Your list is empty.");
                 } else {
+                    System.out.println(INDENT + " Here are the tasks in your list:");
                     for (int i = 0; i < taskCount; i++) {
                         System.out.println(INDENT + " " + (i + 1) + "." + tasks[i]);
                     }
                 }
+            } else if (input.startsWith("todo ")) {
+                String description = input.substring(5).trim();
+                if (description.isEmpty()) {
+                    System.out.println(INDENT + " A todo needs a description.");
+                } else {
+                    tasks[taskCount] = new Todo(description);
+                    taskCount++;
+                    printAddedTask(tasks[taskCount - 1], taskCount);
+                }
             } else {
-                tasks[taskCount] = new Task(input);
-                taskCount++;
-                System.out.println(INDENT + " added " + input + " to your list.");
+                System.out.println(INDENT + " Unknown command.");
             }
 
             System.out.println(SEPARATOR + "\n");
         }
         scanner.close();
+    }
+
+    private static void printAddedTask(Task task, int taskCount) {
+        System.out.println(INDENT + " I have added this task:");
+        System.out.println(INDENT + "   " + task);
+        String taskWord = taskCount == 1 ? "task" : "tasks";
+        System.out.println(INDENT + " Now you have " + taskCount + " " + taskWord + " in the list.");
     }
 }
