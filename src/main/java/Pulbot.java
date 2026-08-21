@@ -36,6 +36,8 @@ public class Pulbot {
         System.out.println(INDENT + " Hello! I'm PulBot.");
         System.out.println(INDENT + " Enter your tasks and I will add them to your list.");
         System.out.println(INDENT + "   Type 'todo <description>' to add a todo.");
+        System.out.println(INDENT + "   Type 'deadline <description> /by <when>' to add a deadline.");
+        System.out.println(INDENT + "   Type 'event <description> /from <start> /to <end>' to add an event.");
         System.out.println(INDENT + "   Type 'list' to view your list.");
         System.out.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
         System.out.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
@@ -97,6 +99,32 @@ public class Pulbot {
                     System.out.println(INDENT + " A todo needs a description.");
                 } else {
                     tasks[taskCount] = new Todo(description);
+                    taskCount++;
+                    printAddedTask(tasks[taskCount - 1], taskCount);
+                }
+            } else if (input.startsWith("deadline ")) {
+                String details = input.substring(9).trim();
+                int byIndex = details.indexOf(" /by ");
+                if (byIndex <= 0 || byIndex + 5 >= details.length()) {
+                    System.out.println(INDENT + " Use: deadline <description> /by <when>");
+                } else {
+                    String description = details.substring(0, byIndex).trim();
+                    String by = details.substring(byIndex + 5).trim();
+                    tasks[taskCount] = new Deadline(description, by);
+                    taskCount++;
+                    printAddedTask(tasks[taskCount - 1], taskCount);
+                }
+            } else if (input.startsWith("event ")) {
+                String details = input.substring(6).trim();
+                int fromIndex = details.indexOf(" /from ");
+                int toIndex = details.indexOf(" /to ", fromIndex + 7);
+                if (fromIndex <= 0 || toIndex <= fromIndex + 7 || toIndex + 5 >= details.length()) {
+                    System.out.println(INDENT + " Use: event <description> /from <start> /to <end>");
+                } else {
+                    String description = details.substring(0, fromIndex).trim();
+                    String from = details.substring(fromIndex + 7, toIndex).trim();
+                    String to = details.substring(toIndex + 5).trim();
+                    tasks[taskCount] = new Event(description, from, to);
                     taskCount++;
                     printAddedTask(tasks[taskCount - 1], taskCount);
                 }
