@@ -1,5 +1,9 @@
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Starts Pulbot and stores tasks entered by the user.
@@ -7,6 +11,7 @@ import java.util.Scanner;
 public class Pulbot {
     private static final String INDENT = "    ";
     private static final String SEPARATOR = INDENT + "_".repeat(80);
+    private static final Path DATA_FILE = Path.of("data", "pulbot.txt");
 
     /**
      * Runs Pulbot until the user enters "bye" command.
@@ -48,6 +53,11 @@ public class Pulbot {
 
         Scanner scanner = new Scanner(System.in);
         ArrayList<Task> tasks = new ArrayList<>();
+        try {
+            readTasks(tasks);
+        } catch (PulbotException e) {
+            System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + e.getMessage());
+        }
 
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine();
@@ -149,6 +159,46 @@ public class Pulbot {
             return index;
         } catch (NumberFormatException e) {
             throw new PulbotException("Please enter a valid task number.");
+        }
+    }
+
+    /** Reads tasks from a file and adds them to the list */
+    private static void readTasks(ArrayList<Task> tasks) throws PulbotException {
+        try (BufferedReader reader = Files.newBufferedReader(DATA_FILE)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] columns = line.split("\t", -1);
+                // Process the columns and create Task objects
+                if (columns.length >= 3) {
+                    String type = columns[0];
+                    String isMarked = columns[1];
+                    String description = columns[2];
+                    Task task;
+                    switch (type) {
+                        case "T":
+                            task = new Todo(description);
+                            break;
+                        case "D":
+                            task = new Deadline(description, columns.length > 3 ? columns[3] : ""); // Get deadline from the 4th column
+                            break;
+                        case "E":
+                            task = new Event(description, columns.length > 3 ? columns[3] : "", columns.length > 4 ? columns[4] : ""); // Get the start and end times from the 4th and 5th columns
+                            break;
+                        default:
+                            throw new PulbotException("Invalid task type in file: " + type);
+                    }
+                    tasks.add(task);
+                    if (isMarked.equals("1")) {
+                        task.markAsDone();
+                    } else if (!isMarked.equals("0")) {
+                        throw new PulbotException("Invalid mark status in file: " + isMarked);
+                    }
+                } else {
+                    throw new PulbotException("Invalid line format in file: " + line);
+                }
+            }
+        } catch (IOException e) {
+            throw new PulbotException("Error reading file: " + e.getMessage());
         }
     }
 }
