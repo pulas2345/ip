@@ -25,6 +25,18 @@ public class Task {
         isDone = false;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public TaskType getType() {
+        return type;
+    }
+
+    public Boolean isDone() {
+        return isDone;
+    }
+
     @Override
     public String toString() {
         return "[" + type.getIcon() + "][" + getStatusIcon() + "] " + description;
