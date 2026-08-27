@@ -75,17 +75,20 @@ public class Pulbot {
                     tasks.get(index).markAsDone();
                     System.out.println(INDENT + " I've marked this task as done:");
                     System.out.println(INDENT + "   " + tasks.get(index));
+                    saveTasks(tasks);
                 } else if (input.equals("unmark") || input.startsWith("unmark ")) {
                     int index = getTaskIndex(input.substring(6).trim(), tasks.size());
                     tasks.get(index).markAsNotDone();
                     System.out.println(INDENT + " I've unmarked this task:");
                     System.out.println(INDENT + "   " + tasks.get(index));
+                    saveTasks(tasks);
                 } else if (input.equals("delete") || input.startsWith("delete ")) {
                     int index = getTaskIndex(input.substring(6).trim(), tasks.size());
                     Task removedTask = tasks.remove(index);
                     System.out.println(INDENT + " I have deleted this task:");
                     System.out.println(INDENT + "   \u001B[31m" + removedTask + "\u001B[0m");
                     printTaskCount(tasks.size());
+                    saveTasks(tasks);
                 } else if (input.equals("list")) {
                     if (tasks.isEmpty()) {
                         System.out.println(INDENT + " Your list is empty.");
@@ -103,6 +106,7 @@ public class Pulbot {
                     Task task = new Todo(description);
                     tasks.add(task);
                     printAddedTask(task, tasks.size());
+                    saveTasks(tasks);
                 } else if (input.equals("deadline") || input.startsWith("deadline ")) {
                     String details = input.substring(8).trim();
                     int byIndex = details.indexOf(" /by ");
@@ -114,6 +118,7 @@ public class Pulbot {
                     Task task = new Deadline(description, by);
                     tasks.add(task);
                     printAddedTask(task, tasks.size());
+                    saveTasks(tasks);
                 } else if (input.equals("event") || input.startsWith("event ")) {
                     String details = input.substring(5).trim();
                     int fromIndex = details.indexOf(" /from ");
@@ -127,6 +132,7 @@ public class Pulbot {
                     Task task = new Event(description, from, to);
                     tasks.add(task);
                     printAddedTask(task, tasks.size());
+                    saveTasks(tasks);
                 } else {
                     throw new PulbotException("Invalid command. Please read the instructions and try again.");
                 }
@@ -199,6 +205,31 @@ public class Pulbot {
             }
         } catch (IOException e) {
             throw new PulbotException("Error reading file: " + e.getMessage());
+        }
+    }
+    
+    /** Updates the task file with the current list of tasks */
+    private static void saveTasks(ArrayList<Task> tasks) throws PulbotException {
+        try {
+            Files.createDirectories(DATA_FILE.getParent());
+            StringBuilder contents = new StringBuilder();
+            for (Task task : tasks) {
+                contents.append(task.type == TaskType.TODO ? "T" : task.type == TaskType.DEADLINE ? "D" : "E")
+                        .append('\t')
+                        .append(task.isDone() ? "1" : "0")
+                        .append('\t')
+                        .append(task.getDescription());
+                if (task instanceof Deadline) {
+                    contents.append('\t').append(((Deadline) task).getBy());
+                } else if (task instanceof Event) {
+                    contents.append('\t').append(((Event) task).getFrom())
+                            .append('\t').append(((Event) task).getTo());
+                }
+                contents.append(System.lineSeparator());
+            }
+            Files.writeString(DATA_FILE, contents.toString());
+        } catch (IOException e) {
+            throw new PulbotException("Error writing to file: " + e.getMessage());
         }
     }
 }
