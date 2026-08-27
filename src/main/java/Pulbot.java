@@ -170,38 +170,56 @@ public class Pulbot {
 
     /** Reads tasks from a file and adds them to the list */
     private static void readTasks(ArrayList<Task> tasks) throws PulbotException {
+        if (!Files.exists(DATA_FILE)) {
+            return; // No file is an empty list
+        }
         try (BufferedReader reader = Files.newBufferedReader(DATA_FILE)) {
             String line;
             while ((line = reader.readLine()) != null) {
+                if (line.isBlank()) {
+                    continue;
+                }
                 String[] columns = line.split("\t", -1);
-                // Process the columns and create Task objects
-                if (columns.length >= 3) {
-                    String type = columns[0];
-                    String isMarked = columns[1];
-                    String description = columns[2];
-                    Task task;
-                    switch (type) {
-                        case "T":
-                            task = new Todo(description);
-                            break;
-                        case "D":
-                            task = new Deadline(description, columns.length > 3 ? columns[3] : ""); // Get deadline from the 4th column
-                            break;
-                        case "E":
-                            task = new Event(description, columns.length > 3 ? columns[3] : "", columns.length > 4 ? columns[4] : ""); // Get the start and end times from the 4th and 5th columns
-                            break;
-                        default:
-                            throw new PulbotException("Invalid task type in file: " + type);
-                    }
-                    tasks.add(task);
-                    if (isMarked.equals("1")) {
-                        task.markAsDone();
-                    } else if (!isMarked.equals("0")) {
-                        throw new PulbotException("Invalid mark status in file: " + isMarked);
-                    }
-                } else {
+                String type = columns[0];
+                int expectedColumns = type.equals("T") ? 3 : type.equals("D") ? 4 : 5;
+                if (!type.equals("T") && !type.equals("D") && !type.equals("E")) {
+                    throw new PulbotException("Invalid task type in file: " + type);
+                }
+                if (columns.length != expectedColumns) {
                     throw new PulbotException("Invalid line format in file: " + line);
                 }
+                String isMarked = columns[1];
+                if (!isMarked.equals("0") && !isMarked.equals("1")) {
+                    throw new PulbotException("Invalid mark status in file: " + isMarked);
+                }
+                String description = columns[2];
+                if (description.isBlank()) {
+                    throw new PulbotException("Task description cannot be empty.");
+                }
+                if (type.equals("D") && columns[3].isBlank()) {
+                    throw new PulbotException("Deadline date cannot be empty.");
+                }
+                if (type.equals("E") && (columns[3].isBlank() || columns[4].isBlank())) {
+                    throw new PulbotException("Event start and end times cannot be empty.");
+                }
+                Task task;
+                switch (type) {
+                    case "T":
+                        task = new Todo(description);
+                        break;
+                    case "D":
+                        task = new Deadline(description, columns[3]);
+                        break;
+                    case "E":
+                        task = new Event(description, columns[3], columns[4]);
+                        break;
+                    default:
+                        throw new PulbotException("Invalid task type in file: " + type);
+                }
+                if (isMarked.equals("1")) {
+                    task.markAsDone();
+                }
+                tasks.add(task);
             }
         } catch (IOException e) {
             throw new PulbotException("Error reading file: " + e.getMessage());
