@@ -211,7 +211,10 @@ public class Pulbot {
     /** Updates the task file with the current list of tasks */
     private static void saveTasks(ArrayList<Task> tasks) throws PulbotException {
         try {
-            Files.createDirectories(DATA_FILE.getParent());
+            Path parent = DATA_FILE.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
             StringBuilder contents = new StringBuilder();
             for (Task task : tasks) {
                 contents.append(task.type == TaskType.TODO ? "T" : task.type == TaskType.DEADLINE ? "D" : "E")
