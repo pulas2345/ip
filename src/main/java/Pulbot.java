@@ -1,5 +1,9 @@
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Starts Pulbot and stores tasks entered by the user.
@@ -7,6 +11,7 @@ import java.util.Scanner;
 public class Pulbot {
     private static final String INDENT = "    ";
     private static final String SEPARATOR = INDENT + "_".repeat(80);
+    private static final Path DATA_FILE = Path.of("data", "pulbot.txt");
 
     /**
      * Runs Pulbot until the user enters "bye" command.
@@ -48,6 +53,11 @@ public class Pulbot {
 
         Scanner scanner = new Scanner(System.in);
         ArrayList<Task> tasks = new ArrayList<>();
+        try {
+            readTasks(tasks);
+        } catch (PulbotException e) {
+            System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + e.getMessage());
+        }
 
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine();
@@ -65,17 +75,20 @@ public class Pulbot {
                     tasks.get(index).markAsDone();
                     System.out.println(INDENT + " I've marked this task as done:");
                     System.out.println(INDENT + "   " + tasks.get(index));
+                    saveTasks(tasks);
                 } else if (input.equals("unmark") || input.startsWith("unmark ")) {
                     int index = getTaskIndex(input.substring(6).trim(), tasks.size());
                     tasks.get(index).markAsNotDone();
                     System.out.println(INDENT + " I've unmarked this task:");
                     System.out.println(INDENT + "   " + tasks.get(index));
+                    saveTasks(tasks);
                 } else if (input.equals("delete") || input.startsWith("delete ")) {
                     int index = getTaskIndex(input.substring(6).trim(), tasks.size());
                     Task removedTask = tasks.remove(index);
                     System.out.println(INDENT + " I have deleted this task:");
                     System.out.println(INDENT + "   \u001B[31m" + removedTask + "\u001B[0m");
                     printTaskCount(tasks.size());
+                    saveTasks(tasks);
                 } else if (input.equals("list")) {
                     if (tasks.isEmpty()) {
                         System.out.println(INDENT + " Your list is empty.");
@@ -93,6 +106,7 @@ public class Pulbot {
                     Task task = new Todo(description);
                     tasks.add(task);
                     printAddedTask(task, tasks.size());
+                    saveTasks(tasks);
                 } else if (input.equals("deadline") || input.startsWith("deadline ")) {
                     String details = input.substring(8).trim();
                     int byIndex = details.indexOf(" /by ");
@@ -104,6 +118,7 @@ public class Pulbot {
                     Task task = new Deadline(description, by);
                     tasks.add(task);
                     printAddedTask(task, tasks.size());
+                    saveTasks(tasks);
                 } else if (input.equals("event") || input.startsWith("event ")) {
                     String details = input.substring(5).trim();
                     int fromIndex = details.indexOf(" /from ");
@@ -117,6 +132,7 @@ public class Pulbot {
                     Task task = new Event(description, from, to);
                     tasks.add(task);
                     printAddedTask(task, tasks.size());
+                    saveTasks(tasks);
                 } else {
                     throw new PulbotException("Invalid command. Please read the instructions and try again.");
                 }
@@ -149,6 +165,92 @@ public class Pulbot {
             return index;
         } catch (NumberFormatException e) {
             throw new PulbotException("Please enter a valid task number.");
+        }
+    }
+
+    /** Reads tasks from a file and adds them to the list */
+    private static void readTasks(ArrayList<Task> tasks) throws PulbotException {
+        if (!Files.exists(DATA_FILE)) {
+            return; // No file is an empty list
+        }
+        try (BufferedReader reader = Files.newBufferedReader(DATA_FILE)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.isBlank()) {
+                    continue;
+                }
+                String[] columns = line.split("\t", -1);
+                String type = columns[0];
+                int expectedColumns = type.equals("T") ? 3 : type.equals("D") ? 4 : 5;
+                if (!type.equals("T") && !type.equals("D") && !type.equals("E")) {
+                    throw new PulbotException("Invalid task type in file: " + type);
+                }
+                if (columns.length != expectedColumns) {
+                    throw new PulbotException("Invalid line format in file: " + line);
+                }
+                String isMarked = columns[1];
+                if (!isMarked.equals("0") && !isMarked.equals("1")) {
+                    throw new PulbotException("Invalid mark status in file: " + isMarked);
+                }
+                String description = columns[2];
+                if (description.isBlank()) {
+                    throw new PulbotException("Task description cannot be empty.");
+                }
+                if (type.equals("D") && columns[3].isBlank()) {
+                    throw new PulbotException("Deadline date cannot be empty.");
+                }
+                if (type.equals("E") && (columns[3].isBlank() || columns[4].isBlank())) {
+                    throw new PulbotException("Event start and end times cannot be empty.");
+                }
+                Task task;
+                switch (type) {
+                    case "T":
+                        task = new Todo(description);
+                        break;
+                    case "D":
+                        task = new Deadline(description, columns[3]);
+                        break;
+                    case "E":
+                        task = new Event(description, columns[3], columns[4]);
+                        break;
+                    default:
+                        throw new PulbotException("Invalid task type in file: " + type);
+                }
+                if (isMarked.equals("1")) {
+                    task.markAsDone();
+                }
+                tasks.add(task);
+            }
+        } catch (IOException e) {
+            throw new PulbotException("Error reading file: " + e.getMessage());
+        }
+    }
+    
+    /** Updates the task file with the current list of tasks */
+    private static void saveTasks(ArrayList<Task> tasks) throws PulbotException {
+        try {
+            Path parent = DATA_FILE.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            StringBuilder contents = new StringBuilder();
+            for (Task task : tasks) {
+                contents.append(task.type == TaskType.TODO ? "T" : task.type == TaskType.DEADLINE ? "D" : "E")
+                        .append('\t')
+                        .append(task.isDone() ? "1" : "0")
+                        .append('\t')
+                        .append(task.getDescription());
+                if (task instanceof Deadline) {
+                    contents.append('\t').append(((Deadline) task).getBy());
+                } else if (task instanceof Event) {
+                    contents.append('\t').append(((Event) task).getFrom())
+                            .append('\t').append(((Event) task).getTo());
+                }
+                contents.append(System.lineSeparator());
+            }
+            Files.writeString(DATA_FILE, contents.toString());
+        } catch (IOException e) {
+            throw new PulbotException("Error writing to file: " + e.getMessage());
         }
     }
 }
