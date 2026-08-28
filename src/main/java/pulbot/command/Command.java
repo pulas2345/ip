@@ -7,8 +7,10 @@ import pulbot.ui.Ui;
 
 /** A user command that can be executed against Pulbot's collaborators. */
 public abstract class Command {
+    /** Executes this command using the supplied application collaborators. */
     public abstract void execute(TaskList tasks, Ui ui, Storage storage) throws PulbotException;
 
+    /** Returns whether executing this command should terminate Pulbot. */
     public boolean isExit() {
         return false;
     }

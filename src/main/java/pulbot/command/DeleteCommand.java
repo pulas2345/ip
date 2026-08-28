@@ -6,6 +6,7 @@ import pulbot.task.Task;
 import pulbot.task.TaskList;
 import pulbot.ui.Ui;
 
+/** Removes a task selected by its displayed number. */
 public class DeleteCommand extends Command {
     private final String taskNumber;
 
@@ -14,6 +15,7 @@ public class DeleteCommand extends Command {
     }
 
     @Override
+    /** Deletes the selected task and persists the updated list. */
     public void execute(TaskList tasks, Ui ui, Storage storage) throws PulbotException {
         int index = getTaskIndex(taskNumber, tasks.size());
         Task removedTask = tasks.remove(index);
