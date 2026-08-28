@@ -65,7 +65,6 @@ public class Ui {
 
     public void showBye() {
         System.out.println(INDENT + " So soon? Just say you hate me. Bye.");
-        showSeparatorWithNewLine();
     }
 
     public void showError(String message) {
