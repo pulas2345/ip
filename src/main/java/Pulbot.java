@@ -19,6 +19,7 @@ public class Pulbot {
      */
     public static void main(String[] args) {
         Ui ui = new Ui();
+        Parser parser = new Parser();
         ui.showWelcome();
         TaskList tasks = new TaskList();
         try {
@@ -32,67 +33,56 @@ public class Pulbot {
             ui.showSeparator();
 
             try {
-                if (input.equals("bye")) {
+                Parser.Command command = parser.parse(input);
+                switch (command.type()) {
+                case BYE:
                     ui.showBye();
                     break;
-                }
-
-                if (input.equals("mark") || input.startsWith("mark ")) {
-                    int index = getTaskIndex(input.substring(4).trim(), tasks.size());
+                case MARK:
+                    int index = getTaskIndex(command.firstArgument(), tasks.size());
                     tasks.get(index).markAsDone();
                     ui.showMarked(tasks.get(index));
                     saveTasks(tasks);
-                } else if (input.equals("unmark") || input.startsWith("unmark ")) {
-                    int index = getTaskIndex(input.substring(6).trim(), tasks.size());
+                    break;
+                case UNMARK:
+                    index = getTaskIndex(command.firstArgument(), tasks.size());
                     tasks.get(index).markAsNotDone();
                     ui.showUnmarked(tasks.get(index));
                     saveTasks(tasks);
-                } else if (input.equals("delete") || input.startsWith("delete ")) {
-                    int index = getTaskIndex(input.substring(6).trim(), tasks.size());
+                    break;
+                case DELETE:
+                    index = getTaskIndex(command.firstArgument(), tasks.size());
                     Task removedTask = tasks.remove(index);
                     ui.showDeleted(removedTask, tasks.size());
                     saveTasks(tasks);
-                } else if (input.equals("list")) {
+                    break;
+                case LIST:
                     ui.showList(tasks);
-                } else if (input.equals("on") || input.startsWith("on ")) {
-                    LocalDate date = parseDate(input.substring(2).trim());
+                    break;
+                case ON:
+                    LocalDate date = parseDate(command.firstArgument());
                     ui.showTasksOnDate(tasks, date);
-                } else if (input.equals("todo") || input.startsWith("todo ")) {
-                    String description = input.substring(4).trim();
-                    if (description.isEmpty()) {
-                        throw new PulbotException("Please include a description.");
-                    }
-                    Task task = new Todo(description);
+                    break;
+                case TODO:
+                    Task task = new Todo(command.firstArgument());
                     tasks.add(task);
                     ui.showAddedTask(task, tasks.size());
                     saveTasks(tasks);
-                } else if (input.equals("deadline") || input.startsWith("deadline ")) {
-                    String details = input.substring(8).trim();
-                    int byIndex = details.indexOf(" /by ");
-                    if (byIndex <= 0 || byIndex + 5 >= details.length()) {
-                        throw new PulbotException("Please use: deadline <description> /by <when>.");
-                    }
-                    String description = details.substring(0, byIndex).trim();
-                    String by = details.substring(byIndex + 5).trim();
-                    Task task = new Deadline(description, parseDateTime(by));
+                    break;
+                case DEADLINE:
+                    task = new Deadline(command.firstArgument(), parseDateTime(command.secondArgument()));
                     tasks.add(task);
                     ui.showAddedTask(task, tasks.size());
                     saveTasks(tasks);
-                } else if (input.equals("event") || input.startsWith("event ")) {
-                    String details = input.substring(5).trim();
-                    int fromIndex = details.indexOf(" /from ");
-                    int toIndex = details.indexOf(" /to ", fromIndex + 7);
-                    if (fromIndex <= 0 || toIndex <= fromIndex + 7 || toIndex + 5 >= details.length()) {
-                        throw new PulbotException("Please use: event <description> /from <start> /to <end>.");
-                    }
-                    String description = details.substring(0, fromIndex).trim();
-                    String from = details.substring(fromIndex + 7, toIndex).trim();
-                    String to = details.substring(toIndex + 5).trim();
-                    Task task = new Event(description, parseDateTime(from), parseDateTime(to));
+                    break;
+                case EVENT:
+                    task = new Event(command.firstArgument(), parseDateTime(command.secondArgument()),
+                            parseDateTime(command.thirdArgument()));
                     tasks.add(task);
                     ui.showAddedTask(task, tasks.size());
                     saveTasks(tasks);
-                } else {
+                    break;
+                default:
                     throw new PulbotException("Invalid command. Please read the instructions and try again.");
                 }
             } catch (PulbotException e) {
@@ -101,7 +91,7 @@ public class Pulbot {
                 ui.showError(e.getMessage());
             }
 
-            ui.showSeparator();
+                ui.showSeparator();
             System.out.println();
         }
         ui.close();
