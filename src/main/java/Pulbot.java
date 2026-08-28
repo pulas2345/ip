@@ -4,6 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 /**
  * Starts Pulbot and stores tasks entered by the user.
@@ -42,9 +47,11 @@ public class Pulbot {
         System.out.println(INDENT + " Hello! I'm PulBot.");
         System.out.println(INDENT + " Enter your tasks and I will add them to your list.");
         System.out.println(INDENT + "   Type 'todo <description>' to add a todo.");
-        System.out.println(INDENT + "   Type 'deadline <description> /by <when>' to add a deadline.");
-        System.out.println(INDENT + "   Type 'event <description> /from <start> /to <end>' to add an event.");
+        System.out.println(INDENT + "   Type 'deadline <description> /by <when>' to add a deadline (d/M/yyyy HHmm).");
+        System.out.println(
+                INDENT + "   Type 'event <description> /from <start> /to <end>' to add an event (d/M/yyyy HHmm).");
         System.out.println(INDENT + "   Type 'list' to view your list.");
+        System.out.println(INDENT + "   Type 'on <date>' to view deadlines and events on a date (d/M/yyyy).");
         System.out.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
         System.out.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
         System.out.println(INDENT + "   Type 'delete <number>' to remove a task.");
@@ -98,6 +105,9 @@ public class Pulbot {
                             System.out.println(INDENT + " " + (i + 1) + "." + tasks.get(i));
                         }
                     }
+                } else if (input.equals("on") || input.startsWith("on ")) {
+                    LocalDate date = parseDate(input.substring(2).trim());
+                    printTasksOnDate(tasks, date);
                 } else if (input.equals("todo") || input.startsWith("todo ")) {
                     String description = input.substring(4).trim();
                     if (description.isEmpty()) {
@@ -115,7 +125,7 @@ public class Pulbot {
                     }
                     String description = details.substring(0, byIndex).trim();
                     String by = details.substring(byIndex + 5).trim();
-                    Task task = new Deadline(description, by);
+                    Task task = new Deadline(description, parseDateTime(by));
                     tasks.add(task);
                     printAddedTask(task, tasks.size());
                     saveTasks(tasks);
@@ -129,7 +139,7 @@ public class Pulbot {
                     String description = details.substring(0, fromIndex).trim();
                     String from = details.substring(fromIndex + 7, toIndex).trim();
                     String to = details.substring(toIndex + 5).trim();
-                    Task task = new Event(description, from, to);
+                    Task task = new Event(description, parseDateTime(from), parseDateTime(to));
                     tasks.add(task);
                     printAddedTask(task, tasks.size());
                     saveTasks(tasks);
@@ -137,6 +147,8 @@ public class Pulbot {
                     throw new PulbotException("Invalid command. Please read the instructions and try again.");
                 }
             } catch (PulbotException e) {
+                System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + e.getMessage());
+            } catch (IllegalArgumentException e) {
                 System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + e.getMessage());
             }
 
@@ -208,10 +220,10 @@ public class Pulbot {
                         task = new Todo(description);
                         break;
                     case "D":
-                        task = new Deadline(description, columns[3]);
+                        task = new Deadline(description, parseStoredDateTime(columns[3]));
                         break;
                     case "E":
-                        task = new Event(description, columns[3], columns[4]);
+                        task = new Event(description, parseStoredDateTime(columns[3]), parseStoredDateTime(columns[4]));
                         break;
                     default:
                         throw new PulbotException("Invalid task type in file: " + type);
@@ -221,11 +233,13 @@ public class Pulbot {
                 }
                 tasks.add(task);
             }
+        } catch (IllegalArgumentException e) {
+            throw new PulbotException(e.getMessage());
         } catch (IOException e) {
             throw new PulbotException("Error reading file: " + e.getMessage());
         }
     }
-    
+
     /** Updates the task file with the current list of tasks */
     private static void saveTasks(ArrayList<Task> tasks) throws PulbotException {
         try {
@@ -241,16 +255,69 @@ public class Pulbot {
                         .append('\t')
                         .append(task.getDescription());
                 if (task instanceof Deadline) {
-                    contents.append('\t').append(((Deadline) task).getBy());
+                    contents.append('\t').append(formatDateTime(((Deadline) task).getBy()));
                 } else if (task instanceof Event) {
-                    contents.append('\t').append(((Event) task).getFrom())
-                            .append('\t').append(((Event) task).getTo());
+                    contents.append('\t').append(formatDateTime(((Event) task).getFrom()))
+                            .append('\t').append(formatDateTime(((Event) task).getTo()));
                 }
                 contents.append(System.lineSeparator());
             }
             Files.writeString(DATA_FILE, contents.toString());
         } catch (IOException e) {
             throw new PulbotException("Error writing to file: " + e.getMessage());
+        }
+    }
+
+    public static LocalDateTime parseDateTime(String value) throws IllegalArgumentException {
+        try {
+            return LocalDateTime.parse(value.trim(), DateTimeFormatter.ofPattern("d/M/uuuu HHmm"));
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Use d/M/yyyy HHmm, for example 2/12/2019 1800.");
+        }
+    }
+
+    private static LocalDateTime parseStoredDateTime(String value) throws IllegalArgumentException {
+        try {
+            return LocalDateTime.parse(value.trim(),
+                    DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH));
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Invalid date in task file: " + value);
+        }
+    }
+
+    public static String formatDateTime(LocalDateTime value) {
+        return value.format(DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH));
+    }
+
+    private static LocalDate parseDate(String value) {
+        try {
+            return LocalDate.parse(value, DateTimeFormatter.ofPattern("d/M/uuuu"));
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Use d/M/yyyy for the date, for example 2/12/2019.");
+        }
+    }
+
+    private static void printTasksOnDate(ArrayList<Task> tasks, LocalDate date) {
+        boolean found = false;
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            boolean occursOnDate = task instanceof Deadline
+                    && ((Deadline) task).getBy().toLocalDate().equals(date)
+                    || task instanceof Event
+                            && !date.isBefore(((Event) task).getFrom().toLocalDate())
+                            && !date.isAfter(((Event) task).getTo().toLocalDate());
+            if (occursOnDate) {
+                if (!found) {
+                    System.out.println(INDENT + " Tasks on "
+                            + date.format(DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH)) + ":");
+                }
+                System.out.println(INDENT + " " + (i + 1) + "." + task);
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println(INDENT + " No deadlines or events on "
+                    + date.format(DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH)) + ".");
         }
     }
 }
