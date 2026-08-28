@@ -4,6 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 /**
  * Starts Pulbot and stores tasks entered by the user.
@@ -42,8 +46,9 @@ public class Pulbot {
         System.out.println(INDENT + " Hello! I'm PulBot.");
         System.out.println(INDENT + " Enter your tasks and I will add them to your list.");
         System.out.println(INDENT + "   Type 'todo <description>' to add a todo.");
-        System.out.println(INDENT + "   Type 'deadline <description> /by <when>' to add a deadline.");
-        System.out.println(INDENT + "   Type 'event <description> /from <start> /to <end>' to add an event.");
+        System.out.println(INDENT + "   Type 'deadline <description> /by <when>' to add a deadline (d/M/yyyy HHmm).");
+        System.out.println(
+                INDENT + "   Type 'event <description> /from <start> /to <end>' to add an event (d/M/yyyy HHmm).");
         System.out.println(INDENT + "   Type 'list' to view your list.");
         System.out.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
         System.out.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
@@ -115,7 +120,7 @@ public class Pulbot {
                     }
                     String description = details.substring(0, byIndex).trim();
                     String by = details.substring(byIndex + 5).trim();
-                    Task task = new Deadline(description, by);
+                    Task task = new Deadline(description, parseDateTime(by));
                     tasks.add(task);
                     printAddedTask(task, tasks.size());
                     saveTasks(tasks);
@@ -129,7 +134,7 @@ public class Pulbot {
                     String description = details.substring(0, fromIndex).trim();
                     String from = details.substring(fromIndex + 7, toIndex).trim();
                     String to = details.substring(toIndex + 5).trim();
-                    Task task = new Event(description, from, to);
+                    Task task = new Event(description, parseDateTime(from), parseDateTime(to));
                     tasks.add(task);
                     printAddedTask(task, tasks.size());
                     saveTasks(tasks);
@@ -137,6 +142,8 @@ public class Pulbot {
                     throw new PulbotException("Invalid command. Please read the instructions and try again.");
                 }
             } catch (PulbotException e) {
+                System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + e.getMessage());
+            } catch (IllegalArgumentException e) {
                 System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + e.getMessage());
             }
 
@@ -208,10 +215,10 @@ public class Pulbot {
                         task = new Todo(description);
                         break;
                     case "D":
-                        task = new Deadline(description, columns[3]);
+                        task = new Deadline(description, parseStoredDateTime(columns[3]));
                         break;
                     case "E":
-                        task = new Event(description, columns[3], columns[4]);
+                        task = new Event(description, parseStoredDateTime(columns[3]), parseStoredDateTime(columns[4]));
                         break;
                     default:
                         throw new PulbotException("Invalid task type in file: " + type);
@@ -221,11 +228,13 @@ public class Pulbot {
                 }
                 tasks.add(task);
             }
+        } catch (IllegalArgumentException e) {
+            throw new PulbotException(e.getMessage());
         } catch (IOException e) {
             throw new PulbotException("Error reading file: " + e.getMessage());
         }
     }
-    
+
     /** Updates the task file with the current list of tasks */
     private static void saveTasks(ArrayList<Task> tasks) throws PulbotException {
         try {
@@ -241,10 +250,10 @@ public class Pulbot {
                         .append('\t')
                         .append(task.getDescription());
                 if (task instanceof Deadline) {
-                    contents.append('\t').append(((Deadline) task).getBy());
+                    contents.append('\t').append(formatDateTime(((Deadline) task).getBy()));
                 } else if (task instanceof Event) {
-                    contents.append('\t').append(((Event) task).getFrom())
-                            .append('\t').append(((Event) task).getTo());
+                    contents.append('\t').append(formatDateTime(((Event) task).getFrom()))
+                            .append('\t').append(formatDateTime(((Event) task).getTo()));
                 }
                 contents.append(System.lineSeparator());
             }
@@ -252,5 +261,26 @@ public class Pulbot {
         } catch (IOException e) {
             throw new PulbotException("Error writing to file: " + e.getMessage());
         }
+    }
+
+    public static LocalDateTime parseDateTime(String value) throws IllegalArgumentException {
+        try {
+            return LocalDateTime.parse(value.trim(), DateTimeFormatter.ofPattern("d/M/uuuu HHmm"));
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Use d/M/yyyy HHmm, for example 2/12/2019 1800.");
+        }
+    }
+
+    private static LocalDateTime parseStoredDateTime(String value) throws IllegalArgumentException {
+        try {
+            return LocalDateTime.parse(value.trim(),
+                    DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH));
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Invalid date in task file: " + value);
+        }
+    }
+
+    public static String formatDateTime(LocalDateTime value) {
+        return value.format(DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH));
     }
 }
