@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -59,7 +58,7 @@ public class Pulbot {
         System.out.println(SEPARATOR + "\n");
 
         Scanner scanner = new Scanner(System.in);
-        ArrayList<Task> tasks = new ArrayList<>();
+        TaskList tasks = new TaskList();
         try {
             readTasks(tasks);
         } catch (PulbotException e) {
@@ -181,7 +180,7 @@ public class Pulbot {
     }
 
     /** Reads tasks from a file and adds them to the list */
-    private static void readTasks(ArrayList<Task> tasks) throws PulbotException {
+    private static void readTasks(TaskList tasks) throws PulbotException {
         if (!Files.exists(DATA_FILE)) {
             return; // No file is an empty list
         }
@@ -241,7 +240,7 @@ public class Pulbot {
     }
 
     /** Updates the task file with the current list of tasks */
-    private static void saveTasks(ArrayList<Task> tasks) throws PulbotException {
+    private static void saveTasks(TaskList tasks) throws PulbotException {
         try {
             Path parent = DATA_FILE.getParent();
             if (parent != null) {
@@ -297,7 +296,7 @@ public class Pulbot {
         }
     }
 
-    private static void printTasksOnDate(ArrayList<Task> tasks, LocalDate date) {
+    private static void printTasksOnDate(TaskList tasks, LocalDate date) {
         boolean found = false;
         for (int i = 0; i < tasks.size(); i++) {
             Task task = tasks.get(i);
