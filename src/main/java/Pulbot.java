@@ -1,4 +1,3 @@
-import java.util.Scanner;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,100 +12,51 @@ import java.util.Locale;
  * Starts Pulbot and stores tasks entered by the user.
  */
 public class Pulbot {
-    private static final String INDENT = "    ";
-    private static final String SEPARATOR = INDENT + "_".repeat(80);
     private static final Path DATA_FILE = Path.of("data", "pulbot.txt");
 
     /**
      * Runs Pulbot until the user enters "bye" command.
      */
     public static void main(String[] args) {
-        String banner = """
-                        ##### ##                ###         ##### ##
-                     ######  /###                ###     ######  /##
-                    /#   /  /  ###                ##    /#   /  / ##                  #
-                   /    /  /    ###               ##   /    /  /  ##                 ##
-                       /  /      ##               ##       /  /   /                  ##
-                      ## ##      ## ##   ####     ##      ## ##  /        /###     ########
-                      ## ##      ##  ##    ###  / ##      ## ## /        / ###  / ########
-                    /### ##      /   ##     ###/  ##      ## ##/        /   ###/     ##
-                   / ### ##     /    ##      ##   ##      ## ## ###    ##    ##      ##
-                      ## ######/     ##      ##   ##      ## ##   ###  ##    ##      ##
-                      ## ######      ##      ##   ##      #  ##     ## ##    ##      ##
-                      ## ##          ##      ##   ##         /      ## ##    ##      ##
-                      ## ##          ##      /#   ##     /##/     ###  ##    ##      ##
-                      ## ##           ######/ ##  ### / /  ########     ######       ##
-                 ##   ## ##            #####   ##  ##/ /     ####        ####         ##
-                ###   #  /                             #
-                 ###    /                               ##
-                  #####/
-                    ###
-                """;
-        System.out.println(banner);
-        System.out.println(INDENT + " Hello! I'm PulBot.");
-        System.out.println(INDENT + " Enter your tasks and I will add them to your list.");
-        System.out.println(INDENT + "   Type 'todo <description>' to add a todo.");
-        System.out.println(INDENT + "   Type 'deadline <description> /by <when>' to add a deadline (d/M/yyyy HHmm).");
-        System.out.println(
-                INDENT + "   Type 'event <description> /from <start> /to <end>' to add an event (d/M/yyyy HHmm).");
-        System.out.println(INDENT + "   Type 'list' to view your list.");
-        System.out.println(INDENT + "   Type 'on <date>' to view deadlines and events on a date (d/M/yyyy).");
-        System.out.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
-        System.out.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
-        System.out.println(INDENT + "   Type 'delete <number>' to remove a task.");
-        System.out.println(INDENT + "   Type 'bye' to exit.");
-        System.out.println(SEPARATOR + "\n");
-
-        Scanner scanner = new Scanner(System.in);
+        Ui ui = new Ui();
+        ui.showWelcome();
         TaskList tasks = new TaskList();
         try {
             readTasks(tasks);
         } catch (PulbotException e) {
-            System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + e.getMessage());
+            ui.showError(e.getMessage());
         }
 
-        while (scanner.hasNextLine()) {
-            String input = scanner.nextLine();
-            System.out.println(SEPARATOR);
+        while (ui.hasNextLine()) {
+            String input = ui.nextLine();
+            ui.showSeparator();
 
             try {
                 if (input.equals("bye")) {
-                    System.out.println(INDENT + " So soon? Just say you hate me. Bye.");
-                    System.out.println(SEPARATOR + "\n");
+                    ui.showBye();
                     break;
                 }
 
                 if (input.equals("mark") || input.startsWith("mark ")) {
                     int index = getTaskIndex(input.substring(4).trim(), tasks.size());
                     tasks.get(index).markAsDone();
-                    System.out.println(INDENT + " I've marked this task as done:");
-                    System.out.println(INDENT + "   " + tasks.get(index));
+                    ui.showMarked(tasks.get(index));
                     saveTasks(tasks);
                 } else if (input.equals("unmark") || input.startsWith("unmark ")) {
                     int index = getTaskIndex(input.substring(6).trim(), tasks.size());
                     tasks.get(index).markAsNotDone();
-                    System.out.println(INDENT + " I've unmarked this task:");
-                    System.out.println(INDENT + "   " + tasks.get(index));
+                    ui.showUnmarked(tasks.get(index));
                     saveTasks(tasks);
                 } else if (input.equals("delete") || input.startsWith("delete ")) {
                     int index = getTaskIndex(input.substring(6).trim(), tasks.size());
                     Task removedTask = tasks.remove(index);
-                    System.out.println(INDENT + " I have deleted this task:");
-                    System.out.println(INDENT + "   \u001B[31m" + removedTask + "\u001B[0m");
-                    printTaskCount(tasks.size());
+                    ui.showDeleted(removedTask, tasks.size());
                     saveTasks(tasks);
                 } else if (input.equals("list")) {
-                    if (tasks.isEmpty()) {
-                        System.out.println(INDENT + " Your list is empty.");
-                    } else {
-                        System.out.println(INDENT + " Here are the tasks in your list:");
-                        for (int i = 0; i < tasks.size(); i++) {
-                            System.out.println(INDENT + " " + (i + 1) + "." + tasks.get(i));
-                        }
-                    }
+                    ui.showList(tasks);
                 } else if (input.equals("on") || input.startsWith("on ")) {
                     LocalDate date = parseDate(input.substring(2).trim());
-                    printTasksOnDate(tasks, date);
+                    ui.showTasksOnDate(tasks, date);
                 } else if (input.equals("todo") || input.startsWith("todo ")) {
                     String description = input.substring(4).trim();
                     if (description.isEmpty()) {
@@ -114,7 +64,7 @@ public class Pulbot {
                     }
                     Task task = new Todo(description);
                     tasks.add(task);
-                    printAddedTask(task, tasks.size());
+                    ui.showAddedTask(task, tasks.size());
                     saveTasks(tasks);
                 } else if (input.equals("deadline") || input.startsWith("deadline ")) {
                     String details = input.substring(8).trim();
@@ -126,7 +76,7 @@ public class Pulbot {
                     String by = details.substring(byIndex + 5).trim();
                     Task task = new Deadline(description, parseDateTime(by));
                     tasks.add(task);
-                    printAddedTask(task, tasks.size());
+                    ui.showAddedTask(task, tasks.size());
                     saveTasks(tasks);
                 } else if (input.equals("event") || input.startsWith("event ")) {
                     String details = input.substring(5).trim();
@@ -140,31 +90,21 @@ public class Pulbot {
                     String to = details.substring(toIndex + 5).trim();
                     Task task = new Event(description, parseDateTime(from), parseDateTime(to));
                     tasks.add(task);
-                    printAddedTask(task, tasks.size());
+                    ui.showAddedTask(task, tasks.size());
                     saveTasks(tasks);
                 } else {
                     throw new PulbotException("Invalid command. Please read the instructions and try again.");
                 }
             } catch (PulbotException e) {
-                System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + e.getMessage());
+                ui.showError(e.getMessage());
             } catch (IllegalArgumentException e) {
-                System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + e.getMessage());
+                ui.showError(e.getMessage());
             }
 
-            System.out.println(SEPARATOR + "\n");
+            ui.showSeparator();
+            System.out.println();
         }
-        scanner.close();
-    }
-
-    private static void printAddedTask(Task task, int taskCount) {
-        System.out.println(INDENT + " I have added this task:");
-        System.out.println(INDENT + "   " + task);
-        printTaskCount(taskCount);
-    }
-
-    private static void printTaskCount(int taskCount) {
-        String taskWord = taskCount == 1 ? "task" : "tasks";
-        System.out.println(INDENT + " Now you have " + taskCount + " " + taskWord + " in the list.");
+        ui.close();
     }
 
     private static int getTaskIndex(String number, int taskCount) throws PulbotException {
@@ -296,27 +236,4 @@ public class Pulbot {
         }
     }
 
-    private static void printTasksOnDate(TaskList tasks, LocalDate date) {
-        boolean found = false;
-        for (int i = 0; i < tasks.size(); i++) {
-            Task task = tasks.get(i);
-            boolean occursOnDate = task instanceof Deadline
-                    && ((Deadline) task).getBy().toLocalDate().equals(date)
-                    || task instanceof Event
-                            && !date.isBefore(((Event) task).getFrom().toLocalDate())
-                            && !date.isAfter(((Event) task).getTo().toLocalDate());
-            if (occursOnDate) {
-                if (!found) {
-                    System.out.println(INDENT + " Tasks on "
-                            + date.format(DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH)) + ":");
-                }
-                System.out.println(INDENT + " " + (i + 1) + "." + task);
-                found = true;
-            }
-        }
-        if (!found) {
-            System.out.println(INDENT + " No deadlines or events on "
-                    + date.format(DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH)) + ".");
-        }
-    }
 }
