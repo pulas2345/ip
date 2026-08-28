@@ -70,7 +70,8 @@ public class Storage {
                     task = new Deadline(description, parseStoredDateTime(columns[3]));
                     break;
                 case "E":
-                    task = new Event(description, parseStoredDateTime(columns[3]), parseStoredDateTime(columns[4]));
+                    task = new Event(description,
+                            parseStoredDateTime(columns[3]), parseStoredDateTime(columns[4]));
                     break;
                 default:
                     throw new PulbotException("Invalid task type in file: " + type);
@@ -96,7 +97,9 @@ public class Storage {
             }
             StringBuilder contents = new StringBuilder();
             for (Task task : tasks) {
-                contents.append(task.getType() == TaskType.TODO ? "T" : task.getType() == TaskType.DEADLINE ? "D" : "E")
+                String taskType = task.getType() == TaskType.TODO ? "T"
+                        : task.getType() == TaskType.DEADLINE ? "D" : "E";
+                contents.append(taskType)
                         .append('\t')
                         .append(task.isDone() ? "1" : "0")
                         .append('\t')
