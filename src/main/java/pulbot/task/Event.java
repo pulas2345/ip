@@ -4,6 +4,7 @@ import pulbot.Pulbot;
 
 import java.time.LocalDateTime;
 
+/** Represents a task that takes place during a date and time range. */
 public class Event extends Task {
     protected LocalDateTime from;
     protected LocalDateTime to;
@@ -18,15 +19,18 @@ public class Event extends Task {
         this.to = to;
     }
 
+    /** Returns the event start date and time. */
     public LocalDateTime getFrom() {
         return from;
     }
 
+    /** Returns the event end date and time. */
     public LocalDateTime getTo() {
         return to;
     }
 
     @Override
+    /** Returns the user-facing representation including the event range. */
     public String toString() {
         return super.toString() + " (from: " + Pulbot.formatDateTime(from)
                 + " to: " + Pulbot.formatDateTime(to) + ")";

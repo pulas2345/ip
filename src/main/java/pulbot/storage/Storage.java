@@ -23,10 +23,12 @@ public class Storage {
             DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH);
     private final Path filePath;
 
+    /** Creates storage backed by the supplied file path. */
     public Storage(String filePath) {
         this.filePath = Path.of(filePath);
     }
 
+    /** Loads tasks from disk, returning an empty list when the file is absent. */
     public TaskList load() throws PulbotException {
         TaskList tasks = new TaskList();
         if (!Files.exists(filePath)) {
@@ -88,6 +90,7 @@ public class Storage {
         return tasks;
     }
 
+    /** Saves all tasks to disk in the application file format. */
     public void save(TaskList tasks) throws PulbotException {
         try {
             Path parent = filePath.getParent();

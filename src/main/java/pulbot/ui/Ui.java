@@ -16,6 +16,7 @@ public class Ui {
     private static final String SEPARATOR = INDENT + "_".repeat(80);
     private final Scanner scanner;
 
+    /** Creates a console user interface backed by standard input. */
     public Ui() {
         scanner = new Scanner(System.in);
     }
@@ -58,53 +59,64 @@ public class Ui {
         showSeparatorWithNewLine();
     }
 
+    /** Returns whether another input line is available. */
     public boolean hasNextLine() {
         return scanner.hasNextLine();
     }
 
+    /** Reads and returns the next input line. */
     public String nextLine() {
         return scanner.nextLine();
     }
 
+    /** Displays a separator between interaction turns. */
     public void showSeparator() {
         System.out.println(SEPARATOR);
     }
 
+    /** Displays the exit message. */
     public void showBye() {
         System.out.println(INDENT + " So soon? Just say you hate me. Bye.");
     }
 
+    /** Displays an error message. */
     public void showError(String message) {
         System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + message);
     }
 
+    /** Displays confirmation for an added task. */
     public void showAddedTask(Task task, int taskCount) {
         System.out.println(INDENT + " I have added this task:");
         System.out.println(INDENT + "   " + task);
         showTaskCount(taskCount);
     }
 
+    /** Displays the current number of tasks. */
     public void showTaskCount(int taskCount) {
         String taskWord = taskCount == 1 ? "task" : "tasks";
         System.out.println(INDENT + " Now you have " + taskCount + " " + taskWord + " in the list.");
     }
 
+    /** Displays confirmation for a marked task. */
     public void showMarked(Task task) {
         System.out.println(INDENT + " I've marked this task as done:");
         System.out.println(INDENT + "   " + task);
     }
 
+    /** Displays confirmation for an unmarked task. */
     public void showUnmarked(Task task) {
         System.out.println(INDENT + " I've unmarked this task:");
         System.out.println(INDENT + "   " + task);
     }
 
+    /** Displays confirmation for a deleted task. */
     public void showDeleted(Task task, int taskCount) {
         System.out.println(INDENT + " I have deleted this task:");
         System.out.println(INDENT + "   \u001B[31m" + task + "\u001B[0m");
         showTaskCount(taskCount);
     }
 
+    /** Displays every task in the supplied list. */
     public void showList(TaskList tasks) {
         if (tasks.isEmpty()) {
             System.out.println(INDENT + " Your list is empty.");
@@ -116,6 +128,7 @@ public class Ui {
         }
     }
 
+    /** Displays deadlines and events occurring on the supplied date. */
     public void showTasksOnDate(TaskList tasks, LocalDate date) {
         boolean found = false;
         for (int i = 0; i < tasks.size(); i++) {
@@ -138,6 +151,7 @@ public class Ui {
         }
     }
 
+    /** Closes the console input scanner. */
     public void close() {
         scanner.close();
     }

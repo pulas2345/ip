@@ -10,7 +10,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+/** Converts raw user input into executable commands. */
 public class Parser {
+    /** Parses one user input line into a command. */
     public Command parse(String input) throws PulbotException {
         if (input.equals("bye")) {
             return new ExitCommand();

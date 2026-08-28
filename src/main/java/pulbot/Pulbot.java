@@ -51,6 +51,7 @@ public class Pulbot {
         ui.close();
     }
 
+    /** Parses a date and time entered using Pulbot's command format. */
     public static LocalDateTime parseDateTime(String value) throws IllegalArgumentException {
         try {
             return LocalDateTime.parse(value.trim(), DateTimeFormatter.ofPattern("d/M/uuuu HHmm"));
@@ -59,6 +60,7 @@ public class Pulbot {
         }
     }
 
+    /** Formats a date and time for display to the user. */
     public static String formatDateTime(LocalDateTime value) {
         return value.format(DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH));
     }

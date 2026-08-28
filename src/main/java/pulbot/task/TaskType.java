@@ -1,5 +1,6 @@
 package pulbot.task;
 
+/** Identifies the supported kinds of tasks. */
 public enum TaskType {
     TODO("T"),
     DEADLINE("D"),
@@ -11,6 +12,7 @@ public enum TaskType {
         this.icon = icon;
     }
 
+    /** Returns the one-letter icon used when displaying this type. */
     public String getIcon() {
         return icon;
     }

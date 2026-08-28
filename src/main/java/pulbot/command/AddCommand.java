@@ -6,6 +6,7 @@ import pulbot.task.Task;
 import pulbot.task.TaskList;
 import pulbot.ui.Ui;
 
+/** Adds a newly created task to the task list. */
 public class AddCommand extends Command {
     private final Task task;
 
@@ -14,6 +15,7 @@ public class AddCommand extends Command {
     }
 
     @Override
+    /** Adds the task, displays confirmation, and persists the updated list. */
     public void execute(TaskList tasks, Ui ui, Storage storage) throws PulbotException {
         tasks.add(task);
         ui.showAddedTask(task, tasks.size());
