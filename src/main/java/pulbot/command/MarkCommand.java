@@ -1,3 +1,10 @@
+package pulbot.command;
+
+import pulbot.PulbotException;
+import pulbot.storage.Storage;
+import pulbot.task.TaskList;
+import pulbot.ui.Ui;
+
 public class MarkCommand extends Command {
     private final String taskNumber;
 
