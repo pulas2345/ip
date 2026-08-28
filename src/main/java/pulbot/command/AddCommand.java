@@ -1,3 +1,11 @@
+package pulbot.command;
+
+import pulbot.PulbotException;
+import pulbot.storage.Storage;
+import pulbot.task.Task;
+import pulbot.task.TaskList;
+import pulbot.ui.Ui;
+
 public class AddCommand extends Command {
     private final Task task;
 

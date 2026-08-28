@@ -1,3 +1,7 @@
+package pulbot.task;
+
+import pulbot.Pulbot;
+
 import java.time.LocalDateTime;
 
 public class Event extends Task {

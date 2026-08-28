@@ -1,3 +1,10 @@
+package pulbot.command;
+
+import pulbot.PulbotException;
+import pulbot.storage.Storage;
+import pulbot.task.TaskList;
+import pulbot.ui.Ui;
+
 /** A user command that can be executed against Pulbot's collaborators. */
 public abstract class Command {
     public abstract void execute(TaskList tasks, Ui ui, Storage storage) throws PulbotException;
