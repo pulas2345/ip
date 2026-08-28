@@ -30,6 +30,13 @@ public class Parser {
         if (startsWithCommand(input, "on")) {
             return new OnCommand(parseDate(input.substring(2).trim()));
         }
+        if (startsWithCommand(input, "find")) {
+            String keyword = input.substring(4).trim();
+            if (keyword.isEmpty()) {
+                throw new PulbotException("Please include a keyword to search for.");
+            }
+            return new FindCommand(keyword);
+        }
         if (startsWithCommand(input, "todo")) {
             String description = input.substring(4).trim();
             if (description.isEmpty()) {

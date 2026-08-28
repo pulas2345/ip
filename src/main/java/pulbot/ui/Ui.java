@@ -50,6 +50,7 @@ public class Ui {
         System.out.println(INDENT + "   Type 'deadline <description> /by <when>' to add a deadline (d/M/yyyy HHmm).");
         System.out.println(INDENT + "   Type 'event <description> /from <start> /to <end>' to add an event (d/M/yyyy HHmm).");
         System.out.println(INDENT + "   Type 'list' to view your list.");
+        System.out.println(INDENT + "   Type 'find <keyword>' to search your task descriptions.");
         System.out.println(INDENT + "   Type 'on <date>' to view deadlines and events on a date (d/M/yyyy).");
         System.out.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
         System.out.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
@@ -113,6 +114,25 @@ public class Ui {
         System.out.println(INDENT + " Here are the tasks in your list:");
         for (int i = 0; i < tasks.size(); i++) {
             System.out.println(INDENT + " " + (i + 1) + "." + tasks.get(i));
+        }
+    }
+
+    /** Displays tasks whose descriptions contain the supplied keyword. */
+    public void showMatchingTasks(TaskList tasks, String keyword) {
+        String normalizedKeyword = keyword.toLowerCase(Locale.ENGLISH);
+        boolean found = false;
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            if (task.getDescription().toLowerCase(Locale.ENGLISH).contains(normalizedKeyword)) {
+                if (!found) {
+                    System.out.println(INDENT + " Here are the matching tasks in your list:");
+                }
+                System.out.println(INDENT + " " + (i + 1) + "." + task);
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println(INDENT + " No matching tasks found.");
         }
     }
 
