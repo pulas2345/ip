@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -50,6 +51,7 @@ public class Pulbot {
         System.out.println(
                 INDENT + "   Type 'event <description> /from <start> /to <end>' to add an event (d/M/yyyy HHmm).");
         System.out.println(INDENT + "   Type 'list' to view your list.");
+        System.out.println(INDENT + "   Type 'on <date>' to view deadlines and events on a date (d/M/yyyy).");
         System.out.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
         System.out.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
         System.out.println(INDENT + "   Type 'delete <number>' to remove a task.");
@@ -103,6 +105,9 @@ public class Pulbot {
                             System.out.println(INDENT + " " + (i + 1) + "." + tasks.get(i));
                         }
                     }
+                } else if (input.equals("on") || input.startsWith("on ")) {
+                    LocalDate date = parseDate(input.substring(2).trim());
+                    printTasksOnDate(tasks, date);
                 } else if (input.equals("todo") || input.startsWith("todo ")) {
                     String description = input.substring(4).trim();
                     if (description.isEmpty()) {
@@ -282,5 +287,37 @@ public class Pulbot {
 
     public static String formatDateTime(LocalDateTime value) {
         return value.format(DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH));
+    }
+
+    private static LocalDate parseDate(String value) {
+        try {
+            return LocalDate.parse(value, DateTimeFormatter.ofPattern("d/M/uuuu"));
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Use d/M/yyyy for the date, for example 2/12/2019.");
+        }
+    }
+
+    private static void printTasksOnDate(ArrayList<Task> tasks, LocalDate date) {
+        boolean found = false;
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            boolean occursOnDate = task instanceof Deadline
+                    && ((Deadline) task).getBy().toLocalDate().equals(date)
+                    || task instanceof Event
+                            && !date.isBefore(((Event) task).getFrom().toLocalDate())
+                            && !date.isAfter(((Event) task).getTo().toLocalDate());
+            if (occursOnDate) {
+                if (!found) {
+                    System.out.println(INDENT + " Tasks on "
+                            + date.format(DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH)) + ":");
+                }
+                System.out.println(INDENT + " " + (i + 1) + "." + task);
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println(INDENT + " No deadlines or events on "
+                    + date.format(DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH)) + ".");
+        }
     }
 }
