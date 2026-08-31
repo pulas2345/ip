@@ -9,6 +9,7 @@ import pulbot.ui.Ui;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Locale;
 
 /**
@@ -54,7 +55,9 @@ public class Pulbot {
     /** Parses a date and time entered using Pulbot's command format. */
     public static LocalDateTime parseDateTime(String value) throws IllegalArgumentException {
         try {
-            return LocalDateTime.parse(value.trim(), DateTimeFormatter.ofPattern("d/M/uuuu HHmm"));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/uuuu HHmm")
+                    .withResolverStyle(ResolverStyle.STRICT);
+            return LocalDateTime.parse(value.trim(), formatter);
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Use d/M/yyyy HHmm, for example 2/12/2019 1800.");
         }
