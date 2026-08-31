@@ -9,6 +9,7 @@ import pulbot.task.Todo;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 /** Converts raw user input into executable commands. */
 public class Parser {
@@ -75,7 +76,9 @@ public class Parser {
 
     private LocalDate parseDate(String value) {
         try {
-            return LocalDate.parse(value, DateTimeFormatter.ofPattern("d/M/uuuu"));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/uuuu")
+                    .withResolverStyle(ResolverStyle.STRICT);
+            return LocalDate.parse(value, formatter);
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Use d/M/yyyy for the date, for example 2/12/2019.");
         }

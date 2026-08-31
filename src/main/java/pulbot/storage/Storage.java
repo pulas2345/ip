@@ -15,12 +15,14 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Locale;
 
 /** Handles loading tasks from and saving tasks to a file. */
 public class Storage {
     private static final DateTimeFormatter STORED_DATE_FORMATTER =
-            DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH);
+            DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH)
+                    .withResolverStyle(ResolverStyle.STRICT);
     private final Path filePath;
 
     /** Creates storage backed by the supplied file path. */
