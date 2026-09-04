@@ -1,5 +1,6 @@
 package pulbot;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -13,6 +14,7 @@ import pulbot.ui.Ui;
  * Controller for the main GUI.
  */
 public class MainWindow extends AnchorPane {
+    private static final String EXIT_COMMAND = "bye";
     private static final String USER_IMAGE_PATH = "/images/DaUser.png";
     private static final String PULBOT_IMAGE_PATH = "/images/DaDuke.png";
 
@@ -57,5 +59,8 @@ public class MainWindow extends AnchorPane {
                 DialogBox.getPulbotDialog(response, pulbotImage)
         );
         userInput.clear();
+        if (input.equals(EXIT_COMMAND)) {
+            Platform.exit();
+        }
     }
 }
