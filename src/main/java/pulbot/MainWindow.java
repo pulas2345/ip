@@ -2,6 +2,7 @@ package pulbot;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -13,6 +14,8 @@ import pulbot.ui.Ui;
  * Controller for the main GUI.
  */
 public class MainWindow extends AnchorPane {
+    @FXML
+    private Label backgroundArt;
     @FXML
     private ScrollPane scrollPane;
     @FXML
@@ -29,13 +32,14 @@ public class MainWindow extends AnchorPane {
 
     @FXML
     public void initialize() {
+        backgroundArt.setText(Ui.getBanner());
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
     }
 
     /** Injects the Pulbot instance. */
     public void setPulbot(Pulbot p) {
         pulbot = p;
-        dialogContainer.getChildren().add(DialogBox.getPulbotDialog(Ui.getWelcomeMessage(), pulbotImage));
+        dialogContainer.getChildren().add(DialogBox.getPulbotDialog(Ui.getWelcomePrompt(), pulbotImage));
     }
 
     /**

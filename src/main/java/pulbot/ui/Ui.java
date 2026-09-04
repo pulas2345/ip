@@ -50,7 +50,21 @@ public class Ui {
 
     /** Returns Pulbot's startup instructions. */
     public static String getWelcomeMessage() {
-        String banner = """
+        String lineSeparator = System.lineSeparator();
+        String indentedMessage = WELCOME_MESSAGE.replace("\n", lineSeparator + INDENT + " ");
+        return getBanner() + lineSeparator
+                + INDENT + " " + indentedMessage + lineSeparator
+                + SEPARATOR + lineSeparator + lineSeparator;
+    }
+
+    /** Returns the welcome prompt without terminal formatting. */
+    public static String getWelcomePrompt() {
+        return WELCOME_MESSAGE;
+    }
+
+    /** Returns the Pulbot ASCII banner. */
+    public static String getBanner() {
+        return """
                         ##### ##                ###         ##### ##
                      ######  /###                ###     ######  /##
                     /#   /  /  ###                ##    /#   /  / ##                  #
@@ -71,11 +85,6 @@ public class Ui {
                   #####/
                     ###
                 """;
-        String lineSeparator = System.lineSeparator();
-        String indentedMessage = WELCOME_MESSAGE.replace("\n", lineSeparator + INDENT + " ");
-        return banner + lineSeparator
-                + INDENT + " " + indentedMessage + lineSeparator
-                + SEPARATOR + lineSeparator + lineSeparator;
     }
 
     /** Returns whether another input line is available. */
