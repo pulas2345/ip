@@ -24,7 +24,6 @@ public class Ui {
         this(System.in, System.out);
     }
 
-    /** Creates a user interface backed by the supplied input and output streams. */
     public Ui(InputStream input, PrintStream output) {
         scanner = new Scanner(input);
         this.output = output;
