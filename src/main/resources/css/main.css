@@ -1,6 +1,4 @@
 .root {
-    main-color: #090a0d;
-    accent-color: #df1834;
     -fx-background-color: linear-gradient(to bottom right, #050608, #121318);
 }
 
