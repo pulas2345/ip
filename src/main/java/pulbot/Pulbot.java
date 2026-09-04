@@ -20,20 +20,24 @@ import java.util.Locale;
  * Starts Pulbot and stores tasks entered by the user.
  */
 public class Pulbot {
+    private static final String ANSI_ESCAPE_SEQUENCE = "\\u001B\\[[;\\d]*m";
     private static final String DEFAULT_FILE_PATH = "data/pulbot.txt";
 
     private final Parser parser;
     private final Storage storage;
-    private TaskList tasks;
+    private final TaskList tasks;
 
+    /** Creates Pulbot and loads its saved tasks. */
     public Pulbot() {
         parser = new Parser();
         storage = new Storage(DEFAULT_FILE_PATH);
+        TaskList loadedTasks;
         try {
-            tasks = storage.load();
+            loadedTasks = storage.load();
         } catch (PulbotException e) {
-            tasks = new TaskList();
+            loadedTasks = new TaskList();
         }
+        tasks = loadedTasks;
     }
 
     /**
@@ -74,8 +78,8 @@ public class Pulbot {
 
     /** Generates a response for the user's chat message. */
     public String getResponse(String input) {
-        ByteArrayOutputStream response = new ByteArrayOutputStream();
-        try (PrintStream output = new PrintStream(response, true, StandardCharsets.UTF_8)) {
+        ByteArrayOutputStream responseBuffer = new ByteArrayOutputStream();
+        try (PrintStream output = new PrintStream(responseBuffer, true, StandardCharsets.UTF_8)) {
             Ui ui = new Ui(InputStream.nullInputStream(), output);
             try {
                 Command command = parser.parse(input);
@@ -86,8 +90,8 @@ public class Pulbot {
                 ui.close();
             }
         }
-        return response.toString(StandardCharsets.UTF_8)
-                .replaceAll("\\u001B\\[[;\\d]*m", "")
+        return responseBuffer.toString(StandardCharsets.UTF_8)
+                .replaceAll(ANSI_ESCAPE_SEQUENCE, "")
                 .strip();
     }
 
