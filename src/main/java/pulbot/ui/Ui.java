@@ -16,6 +16,20 @@ import java.util.Scanner;
 public class Ui {
     private static final String INDENT = "    ";
     private static final String SEPARATOR = INDENT + "_".repeat(80);
+    private static final String WELCOME_MESSAGE = """
+            Hello! I'm PulBot.
+            Enter your tasks and I will add them to your list.
+              Type 'todo <description>' to add a todo.
+              Type 'deadline <description> /by <when>' to add a deadline (d/M/yyyy HHmm).
+              Type 'event <description> /from <start> /to <end>' to add an event (d/M/yyyy HHmm).
+              Type 'list' to view your list.
+              Type 'find <keyword>' to search your task descriptions.
+              Type 'on <date>' to view deadlines and events on a date (d/M/yyyy).
+              Type 'mark <number>' to mark a task as done.
+              Type 'unmark <number>' to unmark a task.
+              Type 'delete <number>' to remove a task.
+              Type 'bye' to exit.
+            """.strip();
     private final PrintStream output;
     private final Scanner scanner;
 
@@ -31,6 +45,11 @@ public class Ui {
 
     /** Displays Pulbot's startup instructions. */
     public void showWelcome() {
+        output.print(getWelcomeMessage());
+    }
+
+    /** Returns Pulbot's startup instructions. */
+    public static String getWelcomeMessage() {
         String banner = """
                         ##### ##                ###         ##### ##
                      ######  /###                ###     ######  /##
@@ -52,20 +71,11 @@ public class Ui {
                   #####/
                     ###
                 """;
-        output.println(banner);
-        output.println(INDENT + " Hello! I'm PulBot.");
-        output.println(INDENT + " Enter your tasks and I will add them to your list.");
-        output.println(INDENT + "   Type 'todo <description>' to add a todo.");
-        output.println(INDENT + "   Type 'deadline <description> /by <when>' to add a deadline (d/M/yyyy HHmm).");
-        output.println(INDENT + "   Type 'event <description> /from <start> /to <end>' to add an event (d/M/yyyy HHmm).");
-        output.println(INDENT + "   Type 'list' to view your list.");
-        output.println(INDENT + "   Type 'find <keyword>' to search your task descriptions.");
-        output.println(INDENT + "   Type 'on <date>' to view deadlines and events on a date (d/M/yyyy).");
-        output.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
-        output.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
-        output.println(INDENT + "   Type 'delete <number>' to remove a task.");
-        output.println(INDENT + "   Type 'bye' to exit.");
-        showSeparatorWithNewLine();
+        String lineSeparator = System.lineSeparator();
+        String indentedMessage = WELCOME_MESSAGE.replace("\n", lineSeparator + INDENT + " ");
+        return banner + lineSeparator
+                + INDENT + " " + indentedMessage + lineSeparator
+                + SEPARATOR + lineSeparator + lineSeparator;
     }
 
     /** Returns whether another input line is available. */
@@ -182,10 +192,6 @@ public class Ui {
     /** Closes the console input scanner. */
     public void close() {
         scanner.close();
-    }
-
-    private void showSeparatorWithNewLine() {
-        output.println(SEPARATOR + "\n");
     }
 
     private String formatDate(LocalDate date) {

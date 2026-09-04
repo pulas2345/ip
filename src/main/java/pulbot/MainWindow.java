@@ -7,6 +7,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import pulbot.ui.Ui;
 
 /**
  * Controller for the main GUI.
@@ -34,6 +35,7 @@ public class MainWindow extends AnchorPane {
     /** Injects the Pulbot instance. */
     public void setPulbot(Pulbot p) {
         pulbot = p;
+        dialogContainer.getChildren().add(DialogBox.getPulbotDialog(Ui.getWelcomeMessage(), pulbotImage));
     }
 
     /**
