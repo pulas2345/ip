@@ -5,6 +5,8 @@ import pulbot.task.Event;
 import pulbot.task.Task;
 import pulbot.task.TaskList;
 
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -14,11 +16,18 @@ import java.util.Scanner;
 public class Ui {
     private static final String INDENT = "    ";
     private static final String SEPARATOR = INDENT + "_".repeat(80);
+    private final PrintStream output;
     private final Scanner scanner;
 
     /** Creates a console user interface backed by standard input. */
     public Ui() {
-        scanner = new Scanner(System.in);
+        this(System.in, System.out);
+    }
+
+    /** Creates a user interface backed by the supplied input and output streams. */
+    public Ui(InputStream input, PrintStream output) {
+        scanner = new Scanner(input);
+        this.output = output;
     }
 
     /** Displays Pulbot's startup instructions. */
@@ -44,19 +53,19 @@ public class Ui {
                   #####/
                     ###
                 """;
-        System.out.println(banner);
-        System.out.println(INDENT + " Hello! I'm PulBot.");
-        System.out.println(INDENT + " Enter your tasks and I will add them to your list.");
-        System.out.println(INDENT + "   Type 'todo <description>' to add a todo.");
-        System.out.println(INDENT + "   Type 'deadline <description> /by <when>' to add a deadline (d/M/yyyy HHmm).");
-        System.out.println(INDENT + "   Type 'event <description> /from <start> /to <end>' to add an event (d/M/yyyy HHmm).");
-        System.out.println(INDENT + "   Type 'list' to view your list.");
-        System.out.println(INDENT + "   Type 'find <keyword>' to search your task descriptions.");
-        System.out.println(INDENT + "   Type 'on <date>' to view deadlines and events on a date (d/M/yyyy).");
-        System.out.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
-        System.out.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
-        System.out.println(INDENT + "   Type 'delete <number>' to remove a task.");
-        System.out.println(INDENT + "   Type 'bye' to exit.");
+        output.println(banner);
+        output.println(INDENT + " Hello! I'm PulBot.");
+        output.println(INDENT + " Enter your tasks and I will add them to your list.");
+        output.println(INDENT + "   Type 'todo <description>' to add a todo.");
+        output.println(INDENT + "   Type 'deadline <description> /by <when>' to add a deadline (d/M/yyyy HHmm).");
+        output.println(INDENT + "   Type 'event <description> /from <start> /to <end>' to add an event (d/M/yyyy HHmm).");
+        output.println(INDENT + "   Type 'list' to view your list.");
+        output.println(INDENT + "   Type 'find <keyword>' to search your task descriptions.");
+        output.println(INDENT + "   Type 'on <date>' to view deadlines and events on a date (d/M/yyyy).");
+        output.println(INDENT + "   Type 'mark <number>' to mark a task as done.");
+        output.println(INDENT + "   Type 'unmark <number>' to unmark a task.");
+        output.println(INDENT + "   Type 'delete <number>' to remove a task.");
+        output.println(INDENT + "   Type 'bye' to exit.");
         showSeparatorWithNewLine();
     }
 
@@ -72,60 +81,60 @@ public class Ui {
 
     /** Displays a separator between interaction turns. */
     public void showSeparator() {
-        System.out.println(SEPARATOR);
+        output.println(SEPARATOR);
     }
 
     /** Displays the exit message. */
     public void showBye() {
-        System.out.println(INDENT + " So soon? Just say you hate me. Bye.");
+        output.println(INDENT + " So soon? Just say you hate me. Bye.");
     }
 
     /** Displays an error message. */
     public void showError(String message) {
-        System.out.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + message);
+        output.println(INDENT + " \u001B[31m \u26A0 ERROR \u26A0 \u001B[0m" + message);
     }
 
     /** Displays confirmation for an added task. */
     public void showAddedTask(Task task, int taskCount) {
-        System.out.println(INDENT + " I have added this task:");
-        System.out.println(INDENT + "   " + task);
+        output.println(INDENT + " I have added this task:");
+        output.println(INDENT + "   " + task);
         showTaskCount(taskCount);
     }
 
     /** Displays the current number of tasks. */
     public void showTaskCount(int taskCount) {
         String taskWord = taskCount == 1 ? "task" : "tasks";
-        System.out.println(INDENT + " Now you have " + taskCount + " " + taskWord + " in the list.");
+        output.println(INDENT + " Now you have " + taskCount + " " + taskWord + " in the list.");
     }
 
     /** Displays confirmation for a marked task. */
     public void showMarked(Task task) {
-        System.out.println(INDENT + " I've marked this task as done:");
-        System.out.println(INDENT + "   " + task);
+        output.println(INDENT + " I've marked this task as done:");
+        output.println(INDENT + "   " + task);
     }
 
     /** Displays confirmation for an unmarked task. */
     public void showUnmarked(Task task) {
-        System.out.println(INDENT + " I've unmarked this task:");
-        System.out.println(INDENT + "   " + task);
+        output.println(INDENT + " I've unmarked this task:");
+        output.println(INDENT + "   " + task);
     }
 
     /** Displays confirmation for a deleted task. */
     public void showDeleted(Task task, int taskCount) {
-        System.out.println(INDENT + " I have deleted this task:");
-        System.out.println(INDENT + "   \u001B[31m" + task + "\u001B[0m");
+        output.println(INDENT + " I have deleted this task:");
+        output.println(INDENT + "   \u001B[31m" + task + "\u001B[0m");
         showTaskCount(taskCount);
     }
 
     /** Displays every task in the supplied list. */
     public void showList(TaskList tasks) {
         if (tasks.isEmpty()) {
-            System.out.println(INDENT + " Your list is empty.");
+            output.println(INDENT + " Your list is empty.");
             return;
         }
-        System.out.println(INDENT + " Here are the tasks in your list:");
+        output.println(INDENT + " Here are the tasks in your list:");
         for (int i = 0; i < tasks.size(); i++) {
-            System.out.println(INDENT + " " + (i + 1) + "." + tasks.get(i));
+            output.println(INDENT + " " + (i + 1) + "." + tasks.get(i));
         }
     }
 
@@ -138,14 +147,14 @@ public class Ui {
             Task task = tasks.get(i);
             if (task.getDescription().toLowerCase(Locale.ENGLISH).contains(normalizedKeyword)) {
                 if (!found) {
-                    System.out.println(INDENT + " Here are the matching tasks in your list:");
+                    output.println(INDENT + " Here are the matching tasks in your list:");
                 }
-                System.out.println(INDENT + " " + (i + 1) + "." + task);
+                output.println(INDENT + " " + (i + 1) + "." + task);
                 found = true;
             }
         }
         if (!found) {
-            System.out.println(INDENT + " No matching tasks found.");
+            output.println(INDENT + " No matching tasks found.");
         }
     }
 
@@ -160,14 +169,14 @@ public class Ui {
                             && !date.isAfter(((Event) task).getTo().toLocalDate());
             if (occursOnDate) {
                 if (!found) {
-                    System.out.println(INDENT + " Tasks on " + formatDate(date) + ":");
+                    output.println(INDENT + " Tasks on " + formatDate(date) + ":");
                 }
-                System.out.println(INDENT + " " + (i + 1) + "." + task);
+                output.println(INDENT + " " + (i + 1) + "." + task);
                 found = true;
             }
         }
         if (!found) {
-            System.out.println(INDENT + " No deadlines or events on " + formatDate(date) + ".");
+            output.println(INDENT + " No deadlines or events on " + formatDate(date) + ".");
         }
     }
 
@@ -177,7 +186,7 @@ public class Ui {
     }
 
     private void showSeparatorWithNewLine() {
-        System.out.println(SEPARATOR + "\n");
+        output.println(SEPARATOR + "\n");
     }
 
     private String formatDate(LocalDate date) {

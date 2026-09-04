@@ -1,17 +1,18 @@
 package pulbot;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
-/** Displays one chat message beside the speaker's image. */
 public class DialogBox extends HBox {
     private final Label text;
     private final ImageView displayPicture;
 
-    /** Creates a dialog box containing the supplied message and image. */
     public DialogBox(String message, Image image) {
         text = new Label(message);
         displayPicture = new ImageView(image);
@@ -22,5 +23,25 @@ public class DialogBox extends HBox {
         setAlignment(Pos.TOP_RIGHT);
 
         getChildren().addAll(text, displayPicture);
+    }
+
+    /**
+     * Flips the dialog box such that the ImageView is on the left and text on the right.
+     */
+    private void flip() {
+        setAlignment(Pos.TOP_LEFT);
+        ObservableList<Node> children = FXCollections.observableArrayList(getChildren());
+        FXCollections.reverse(children);
+        getChildren().setAll(children);
+    }
+
+    public static DialogBox getUserDialog(String text, Image image) {
+        return new DialogBox(text, image);
+    }
+
+    public static DialogBox getPulbotDialog(String text, Image image) {
+        DialogBox dialogBox = new DialogBox(text, image);
+        dialogBox.flip();
+        return dialogBox;
     }
 }

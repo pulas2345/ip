@@ -6,6 +6,10 @@ import pulbot.storage.Storage;
 import pulbot.task.TaskList;
 import pulbot.ui.Ui;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -16,6 +20,22 @@ import java.util.Locale;
  * Starts Pulbot and stores tasks entered by the user.
  */
 public class Pulbot {
+    private static final String DEFAULT_FILE_PATH = "data/pulbot.txt";
+
+    private final Parser parser;
+    private final Storage storage;
+    private TaskList tasks;
+
+    public Pulbot() {
+        parser = new Parser();
+        storage = new Storage(DEFAULT_FILE_PATH);
+        try {
+            tasks = storage.load();
+        } catch (PulbotException e) {
+            tasks = new TaskList();
+        }
+    }
+
     /**
      * Runs Pulbot until the user enters "bye" command.
      */
@@ -50,6 +70,25 @@ public class Pulbot {
             }
         }
         ui.close();
+    }
+
+    /** Generates a response for the user's chat message. */
+    public String getResponse(String input) {
+        ByteArrayOutputStream response = new ByteArrayOutputStream();
+        try (PrintStream output = new PrintStream(response, true, StandardCharsets.UTF_8)) {
+            Ui ui = new Ui(InputStream.nullInputStream(), output);
+            try {
+                Command command = parser.parse(input);
+                command.execute(tasks, ui, storage);
+            } catch (PulbotException | IllegalArgumentException e) {
+                ui.showError(e.getMessage());
+            } finally {
+                ui.close();
+            }
+        }
+        return response.toString(StandardCharsets.UTF_8)
+                .replaceAll("\\u001B\\[[;\\d]*m", "")
+                .strip();
     }
 
     /** Parses a date and time entered using Pulbot's command format. */

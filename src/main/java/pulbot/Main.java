@@ -11,10 +11,10 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-/** Starts the JavaFX user interface for Pulbot. */
 public class Main extends Application {
     private final Image userImage = new Image(getClass().getResourceAsStream("/images/DaUser.png"));
     private final Image pulbotImage = new Image(getClass().getResourceAsStream("/images/DaDuke.png"));
+    private final Pulbot pulbot = new Pulbot();
 
     private ScrollPane scrollPane;
     private VBox dialogContainer;
@@ -30,8 +30,6 @@ public class Main extends Application {
 
         userInput = new TextField();
         sendButton = new Button("Send");
-        DialogBox dialogBox = new DialogBox("Hello!", userImage);
-        dialogContainer.getChildren().addAll(dialogBox);
 
         AnchorPane mainLayout = new AnchorPane();
         mainLayout.getChildren().addAll(scrollPane, userInput, sendButton);
@@ -61,5 +59,24 @@ public class Main extends Application {
         AnchorPane.setRightAnchor(sendButton, 1.0);
         AnchorPane.setLeftAnchor(userInput, 1.0);
         AnchorPane.setBottomAnchor(userInput, 1.0);
+
+        sendButton.setOnMouseClicked(event -> handleUserInput());
+        userInput.setOnAction(event -> handleUserInput());
+
+        dialogContainer.heightProperty().addListener(observable -> scrollPane.setVvalue(1.0));
+    }
+
+    /**
+     * Creates two dialog boxes, one echoing user input and the other containing Pulbot's reply and then appends them to
+     * the dialog container. Clears the user input after processing.
+     */
+    private void handleUserInput() {
+        String userText = userInput.getText();
+        String pulbotText = pulbot.getResponse(userInput.getText());
+        dialogContainer.getChildren().addAll(
+                DialogBox.getUserDialog(userText, userImage),
+                DialogBox.getPulbotDialog(pulbotText, pulbotImage)
+        );
+        userInput.clear();
     }
 }
