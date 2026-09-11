@@ -11,6 +11,9 @@ public class Task {
     }
 
     protected Task(String description, TaskType type) {
+        assert description != null && !description.isBlank()
+                : "Tasks must have a non-blank description after input validation";
+        assert type != null : "Every task must have a type";
         this.description = description;
         this.isDone = false;
         this.type = type;

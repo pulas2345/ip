@@ -41,6 +41,7 @@ public class MainWindow extends AnchorPane {
 
     /** Injects the Pulbot instance. */
     public void setPulbot(Pulbot pulbot) {
+        assert pulbot != null : "Pulbot must be provided before the window handles input";
         this.pulbot = pulbot;
         DialogBox welcomeDialog = DialogBox.getPulbotDialog(Ui.getWelcomePrompt(), pulbotImage);
         dialogContainer.getChildren().add(welcomeDialog);
