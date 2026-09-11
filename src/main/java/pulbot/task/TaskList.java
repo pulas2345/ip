@@ -13,11 +13,13 @@ public class TaskList implements Iterable<Task> {
         this.tasks = new ArrayList<>();
     }
 
+    /** Creates an independent task list containing the supplied tasks in order. */
     public TaskList(Collection<Task> tasks) {
         assert tasks != null : "A task list cannot be created from a null collection";
         this.tasks = new ArrayList<>(tasks);
     }
 
+    /** Adds a validated task to the end of the list. */
     public void add(Task task) {
         assert task != null : "A task list cannot contain null tasks";
         tasks.add(task);
