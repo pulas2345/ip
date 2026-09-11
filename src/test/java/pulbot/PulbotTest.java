@@ -56,7 +56,7 @@ public class PulbotTest {
         }
 
         String displayed = output.toString(StandardCharsets.UTF_8);
-        assertTrue(displayed.contains("Hello! I'm PulBot."));
+        assertTrue(displayed.contains("Hello! I'm Pulbot."));
         assertTrue(displayed.contains("Bye."));
     }
 }

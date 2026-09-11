@@ -61,7 +61,7 @@ public class UiTest {
         ui.showWelcome();
 
         String displayed = displayedText();
-        assertTrue(displayed.contains("Hello! I'm PulBot."));
+        assertTrue(displayed.contains("Hello! I'm Pulbot."));
         assertTrue(displayed.contains("todo <description>"));
         assertTrue(displayed.contains("deadline <description> /by <when>"));
         assertTrue(displayed.contains("event <description> /from <start> /to <end>"));

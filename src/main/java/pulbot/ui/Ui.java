@@ -18,8 +18,10 @@ import pulbot.task.TaskList;
 public class Ui {
     private static final String INDENT = "    ";
     private static final String SEPARATOR = INDENT + "_".repeat(80);
+    private static final DateTimeFormatter DISPLAY_DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH);
     private static final String WELCOME_MESSAGE = """
-            Hello! I'm PulBot.
+            Hello! I'm Pulbot.
             Enter your tasks and I will add them to your list.
               Type 'todo <description>' to add a todo.
               Type 'deadline <description> /by <when>' to add a deadline (d/M/yyyy HHmm).
@@ -105,6 +107,11 @@ public class Ui {
         output.println(SEPARATOR);
     }
 
+    /** Displays a blank line between interaction turns. */
+    public void showBlankLine() {
+        output.println();
+    }
+
     /** Displays the exit message. */
     public void showBye() {
         output.println(INDENT + " So soon? Just say you hate me. Bye.");
@@ -182,12 +189,7 @@ public class Ui {
         boolean found = false;
         for (int i = 0; i < tasks.size(); i++) {
             Task task = tasks.get(i);
-            boolean occursOnDate = task instanceof Deadline
-                    && ((Deadline) task).getBy().toLocalDate().equals(date)
-                    || task instanceof Event
-                            && !date.isBefore(((Event) task).getFrom().toLocalDate())
-                            && !date.isAfter(((Event) task).getTo().toLocalDate());
-            if (occursOnDate) {
+            if (occursOnDate(task, date)) {
                 if (!found) {
                     output.println(INDENT + " Tasks on " + formatDate(date) + ":");
                 }
@@ -206,6 +208,19 @@ public class Ui {
     }
 
     private String formatDate(LocalDate date) {
-        return date.format(DateTimeFormatter.ofPattern("MMM dd uuuu", Locale.ENGLISH));
+        return date.format(DISPLAY_DATE_FORMATTER);
+    }
+
+    /** Returns whether a deadline or event occurs on the supplied date. */
+    private boolean occursOnDate(Task task, LocalDate date) {
+        if (task instanceof Deadline deadline) {
+            return deadline.getBy().toLocalDate().equals(date);
+        }
+        if (task instanceof Event event) {
+            LocalDate startDate = event.getFrom().toLocalDate();
+            LocalDate endDate = event.getTo().toLocalDate();
+            return !date.isBefore(startDate) && !date.isAfter(endDate);
+        }
+        return false;
     }
 }

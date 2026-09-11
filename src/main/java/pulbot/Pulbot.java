@@ -22,6 +22,10 @@ import pulbot.ui.Ui;
 public class Pulbot {
     private static final String ANSI_ESCAPE_SEQUENCE = "\\u001B\\[[;\\d]*m";
     private static final String DEFAULT_FILE_PATH = "data/pulbot.txt";
+    private static final DateTimeFormatter INPUT_DATE_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("d/M/uuuu HHmm").withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter DISPLAY_DATE_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH);
 
     private final Parser parser;
     private final Storage storage;
@@ -40,40 +44,50 @@ public class Pulbot {
         tasks = loadedTasks;
     }
 
-    /**
-     * Runs Pulbot until the user enters "bye" command.
-     */
+    /** Runs Pulbot until the user enters the {@code bye} command. */
     public static void main(String[] args) {
         Ui ui = new Ui();
         Parser parser = new Parser();
-        Storage storage = new Storage("data/pulbot.txt");
+        Storage storage = new Storage(DEFAULT_FILE_PATH);
         ui.showWelcome();
-        TaskList tasks = new TaskList();
+        TaskList tasks = loadTasks(storage, ui);
+        processCommands(parser, tasks, ui, storage);
+        ui.close();
+    }
+
+    /** Loads saved tasks and reports recoverable storage errors to the console. */
+    private static TaskList loadTasks(Storage storage, Ui ui) {
         try {
-            tasks = storage.load();
+            return storage.load();
         } catch (PulbotException e) {
             ui.showError(e.getMessage());
+            return new TaskList();
         }
+    }
 
+    /** Reads and executes commands until input ends or the user exits. */
+    private static void processCommands(Parser parser, TaskList tasks, Ui ui, Storage storage) {
         boolean isExit = false;
         while (ui.hasNextLine() && !isExit) {
             String input = ui.nextLine();
             ui.showSeparator();
-
-            try {
-                Command command = parser.parse(input);
-                command.execute(tasks, ui, storage);
-                isExit = command.isExit();
-            } catch (PulbotException e) {
-                ui.showError(e.getMessage());
-            } catch (IllegalArgumentException e) {
-                ui.showError(e.getMessage());
-            } finally {
-                ui.showSeparator();
-                System.out.println();
-            }
+            isExit = executeCommand(input, parser, tasks, ui, storage);
+            ui.showSeparator();
+            ui.showBlankLine();
         }
-        ui.close();
+    }
+
+    /** Executes one console command and returns whether it requests application exit. */
+    private static boolean executeCommand(String input, Parser parser, TaskList tasks,
+            Ui ui, Storage storage) {
+        try {
+            Command command = parser.parse(input);
+            command.execute(tasks, ui, storage);
+            return command.isExit();
+        } catch (PulbotException | IllegalArgumentException e) {
+            ui.showError(e.getMessage());
+            return false;
+        }
     }
 
     /** Generates a response for the user's chat message. */
@@ -98,9 +112,7 @@ public class Pulbot {
     /** Parses a date and time entered using Pulbot's command format. */
     public static LocalDateTime parseDateTime(String value) throws IllegalArgumentException {
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/uuuu HHmm")
-                    .withResolverStyle(ResolverStyle.STRICT);
-            return LocalDateTime.parse(value.trim(), formatter);
+            return LocalDateTime.parse(value.trim(), INPUT_DATE_TIME_FORMATTER);
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Use d/M/yyyy HHmm, for example 2/12/2019 1800.");
         }
@@ -108,7 +120,6 @@ public class Pulbot {
 
     /** Formats a date and time for display to the user. */
     public static String formatDateTime(LocalDateTime value) {
-        return value.format(DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH));
+        return value.format(DISPLAY_DATE_TIME_FORMATTER);
     }
-
 }
