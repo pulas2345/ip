@@ -56,12 +56,12 @@ public class CommandTest {
     public void taskNumberCommand_invalidNumber_throwsExceptionWithoutChangingList() {
         TaskList tasks = new TaskList(java.util.List.of(new Todo("only task")));
 
-        assertThrows(PulbotException.class,
-                () -> new MarkCommand("0").execute(tasks, ui, storage));
-        assertThrows(PulbotException.class,
-                () -> new MarkCommand("2").execute(tasks, ui, storage));
-        assertThrows(PulbotException.class,
-                () -> new MarkCommand("abc").execute(tasks, ui, storage));
+        assertThrows(PulbotException.class, () ->
+                new MarkCommand("0").execute(tasks, ui, storage));
+        assertThrows(PulbotException.class, () ->
+                new MarkCommand("2").execute(tasks, ui, storage));
+        assertThrows(PulbotException.class, () ->
+                new MarkCommand("abc").execute(tasks, ui, storage));
         assertEquals(1, tasks.size());
         assertEquals(0, storage.saveCount);
     }
