@@ -2,9 +2,9 @@ package pulbot.task;
 
 /** Represents a task that can be stored and managed by Pulbot. */
 public class Task {
-    protected String description;
-    protected boolean isDone;
-    protected TaskType type;
+    private final String description;
+    private final TaskType type;
+    private boolean isDone;
 
     public Task(String description) {
         this(description, TaskType.TODO);
@@ -46,8 +46,8 @@ public class Task {
         return isDone;
     }
 
-    @Override
     /** Returns the user-facing representation of this task. */
+    @Override
     public String toString() {
         return "[" + type.getIcon() + "][" + getStatusIcon() + "] " + description;
     }

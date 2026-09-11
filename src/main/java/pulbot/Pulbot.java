@@ -1,11 +1,5 @@
 package pulbot;
 
-import pulbot.command.Command;
-import pulbot.command.Parser;
-import pulbot.storage.Storage;
-import pulbot.task.TaskList;
-import pulbot.ui.Ui;
-
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -15,6 +9,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.Locale;
+
+import pulbot.command.Command;
+import pulbot.command.Parser;
+import pulbot.storage.Storage;
+import pulbot.task.TaskList;
+import pulbot.ui.Ui;
 
 /**
  * Starts Pulbot and stores tasks entered by the user.
