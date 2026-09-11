@@ -17,6 +17,9 @@ public class AddCommand extends Command {
     /** Adds the task, displays confirmation, and persists the updated list. */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws PulbotException {
+        if (tasks.containsDuplicate(task)) {
+            throw new PulbotException("This task already exists in your list.");
+        }
         tasks.add(task);
         ui.showAddedTask(task, tasks.size());
         storage.save(tasks);
