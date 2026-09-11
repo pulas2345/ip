@@ -32,6 +32,14 @@ public class Event extends Task {
         return to;
     }
 
+    /** Returns whether another event has the same start and end date-times. */
+    @Override
+    protected boolean hasSameSchedule(Task other) {
+        return other instanceof Event event
+                && from.equals(event.from)
+                && to.equals(event.to);
+    }
+
     /** Returns the user-facing representation including the event range. */
     @Override
     public String toString() {

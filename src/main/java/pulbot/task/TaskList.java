@@ -41,6 +41,12 @@ public class TaskList implements Iterable<Task> {
         return tasks.isEmpty();
     }
 
+    /** Returns whether the list already contains a task with the same identifying details. */
+    public boolean containsDuplicate(Task task) {
+        assert task != null : "Only a validated task can be checked for duplication";
+        return tasks.stream().anyMatch(existingTask -> existingTask.hasSameDetails(task));
+    }
+
     @Override
     public Iterator<Task> iterator() {
         return tasks.iterator();

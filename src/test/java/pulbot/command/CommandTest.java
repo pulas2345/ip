@@ -37,6 +37,20 @@ public class CommandTest {
     }
 
     @Test
+    public void addCommand_duplicateTask_throwsExceptionWithoutAddingOrSaving() {
+        Task existingTask = new Todo("read book");
+        existingTask.markAsDone();
+        TaskList tasks = new TaskList(java.util.List.of(existingTask));
+
+        PulbotException exception = assertThrows(PulbotException.class, () ->
+                new AddCommand(new Todo("READ BOOK")).execute(tasks, ui, storage));
+
+        assertEquals("This task already exists in your list.", exception.getMessage());
+        assertEquals(1, tasks.size());
+        assertEquals(0, storage.saveCount);
+    }
+
+    @Test
     public void markAndUnmarkCommand_execute_updatesSelectedTaskAndSaves() throws PulbotException {
         Task first = new Todo("first");
         Task second = new Todo("second");

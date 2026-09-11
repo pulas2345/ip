@@ -24,6 +24,12 @@ public class Deadline extends Task {
         return by;
     }
 
+    /** Returns whether another deadline has the same due date and time. */
+    @Override
+    protected boolean hasSameSchedule(Task other) {
+        return other instanceof Deadline deadline && by.equals(deadline.by);
+    }
+
     /** Returns the user-facing representation including the deadline. */
     @Override
     public String toString() {

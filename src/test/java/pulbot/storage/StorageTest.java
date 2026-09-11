@@ -70,6 +70,19 @@ public class StorageTest {
     }
 
     @Test
+    public void load_existingDuplicateTasks_preservesBackwardCompatibleData()
+            throws IOException, PulbotException {
+        Path file = tempDir.resolve("tasks.txt");
+        Files.writeString(file, "T\t0\tread book\nT\t1\tREAD BOOK\n");
+
+        TaskList loaded = new Storage(file.toString()).load();
+
+        assertEquals(2, loaded.size());
+        assertFalse(loaded.get(0).isDone());
+        assertTrue(loaded.get(1).isDone());
+    }
+
+    @Test
     public void load_invalidData_throwsException() throws IOException {
         Path file = tempDir.resolve("tasks.txt");
         String[] invalidLines = {

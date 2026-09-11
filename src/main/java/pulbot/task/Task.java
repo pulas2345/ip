@@ -49,6 +49,22 @@ public class Task {
         return isDone;
     }
 
+    /**
+     * Returns whether this task and another task contain the same identifying details.
+     * Completion status is deliberately ignored because it does not describe the task itself.
+     */
+    public boolean hasSameDetails(Task other) {
+        return other != null
+                && type == other.type
+                && description.strip().equalsIgnoreCase(other.description.strip())
+                && hasSameSchedule(other);
+    }
+
+    /** Returns whether this task and another task have the same type-specific schedule. */
+    protected boolean hasSameSchedule(Task other) {
+        return true;
+    }
+
     /** Returns the user-facing representation of this task. */
     @Override
     public String toString() {
