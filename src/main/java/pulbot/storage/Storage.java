@@ -95,6 +95,7 @@ public class Storage {
 
     /** Saves all tasks to disk in the application file format. */
     public void save(TaskList tasks) throws PulbotException {
+        assert tasks != null : "Storage can only save an initialized task list";
         try {
             Path parent = filePath.getParent();
             if (parent != null) {

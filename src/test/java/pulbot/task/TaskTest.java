@@ -2,6 +2,7 @@ package pulbot.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,17 @@ import org.junit.jupiter.api.Test;
 
 /** Tests task state changes and user-facing task representations. */
 public class TaskTest {
+    @Test
+    public void constructors_missingRequiredDetails_throwAssertionError() {
+        assertThrows(AssertionError.class, () -> new Todo(" "));
+        assertThrows(AssertionError.class, () ->
+                new Deadline("submit report", (LocalDateTime) null));
+        assertThrows(AssertionError.class, () ->
+                new Event("lecture", null, LocalDateTime.of(2019, 12, 3, 16, 0)));
+        assertThrows(AssertionError.class, () ->
+                new Event("lecture", LocalDateTime.of(2019, 12, 3, 14, 0), null));
+    }
+
     @Test
     public void markAndUnmark_updatesCompletionStateAndDisplay() {
         Task task = new Task("read book");

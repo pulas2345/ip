@@ -3,6 +3,7 @@ package pulbot.task;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -13,6 +14,14 @@ import org.junit.jupiter.api.Test;
 
 /** Tests the ordered task collection operations. */
 public class TaskListTest {
+    @Test
+    public void constructorAndAdd_nullInput_throwsAssertionError() {
+        assertThrows(AssertionError.class, () -> new TaskList(null));
+
+        TaskList tasks = new TaskList();
+        assertThrows(AssertionError.class, () -> tasks.add(null));
+    }
+
     @Test
     public void collectionOperations_addGetIterateAndRemove_inOrder() {
         Task first = new Todo("first");

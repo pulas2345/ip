@@ -14,10 +14,12 @@ public class TaskList implements Iterable<Task> {
     }
 
     public TaskList(Collection<Task> tasks) {
+        assert tasks != null : "A task list cannot be created from a null collection";
         this.tasks = new ArrayList<>(tasks);
     }
 
     public void add(Task task) {
+        assert task != null : "A task list cannot contain null tasks";
         tasks.add(task);
     }
 
