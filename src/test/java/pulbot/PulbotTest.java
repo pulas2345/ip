@@ -25,10 +25,10 @@ public class PulbotTest {
 
     @Test
     public void parseDateTime_invalidInput_throwsException() {
-        assertThrows(IllegalArgumentException.class,
-                () -> Pulbot.parseDateTime("2019-12-02 18:00"));
-        assertThrows(IllegalArgumentException.class,
-                () -> Pulbot.parseDateTime("31/2/2019 1800"));
+        assertThrows(IllegalArgumentException.class, () ->
+                Pulbot.parseDateTime("2019-12-02 18:00"));
+        assertThrows(IllegalArgumentException.class, () ->
+                Pulbot.parseDateTime("31/2/2019 1800"));
     }
 
     @Test

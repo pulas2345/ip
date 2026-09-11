@@ -14,8 +14,8 @@ public class AddCommand extends Command {
         this.task = task;
     }
 
-    @Override
     /** Adds the task, displays confirmation, and persists the updated list. */
+    @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws PulbotException {
         tasks.add(task);
         ui.showAddedTask(task, tasks.size());

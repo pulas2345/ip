@@ -14,8 +14,8 @@ public class DeleteCommand extends Command {
         this.taskNumber = taskNumber;
     }
 
-    @Override
     /** Deletes the selected task and persists the updated list. */
+    @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws PulbotException {
         int index = getTaskIndex(taskNumber, tasks.size());
         Task removedTask = tasks.remove(index);
