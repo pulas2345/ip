@@ -9,8 +9,10 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.stream.IntStream;
 
 /** Handles Pulbot's console input and output. */
 public class Ui {
@@ -161,20 +163,19 @@ public class Ui {
     /** Displays tasks whose descriptions contain the supplied keyword. */
     public void showMatchingTasks(TaskList tasks, String keyword) {
         String normalizedKeyword = keyword.toLowerCase(Locale.ENGLISH);
-        boolean found = false;
-        for (int i = 0; i < tasks.size(); i++) {
-            Task task = tasks.get(i);
-            if (task.getDescription().toLowerCase(Locale.ENGLISH).contains(normalizedKeyword)) {
-                if (!found) {
-                    output.println(INDENT + " Here are the matching tasks in your list:");
-                }
-                output.println(INDENT + " " + (i + 1) + "." + task);
-                found = true;
-            }
-        }
-        if (!found) {
+        List<Integer> matchingIndices = IntStream.range(0, tasks.size())
+                .filter(index -> tasks.get(index).getDescription()
+                        .toLowerCase(Locale.ENGLISH).contains(normalizedKeyword))
+                .boxed()
+                .toList();
+
+        if (matchingIndices.isEmpty()) {
             output.println(INDENT + " No matching tasks found.");
+            return;
         }
+        output.println(INDENT + " Here are the matching tasks in your list:");
+        matchingIndices.forEach(index ->
+                output.println(INDENT + " " + (index + 1) + "." + tasks.get(index)));
     }
 
     public void showTasksOnDate(TaskList tasks, LocalDate date) {
