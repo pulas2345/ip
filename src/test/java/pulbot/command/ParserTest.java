@@ -48,6 +48,8 @@ public class ParserTest {
     public void parse_unknownCommand_throwsException() {
         assertThrows(PulbotException.class, () -> parser.parse("unknown command"));
         assertThrows(PulbotException.class, () -> parser.parse("listing"));
+        assertThrows(PulbotException.class, () -> parser.parse("bye now"));
+        assertThrows(PulbotException.class, () -> parser.parse("list all"));
     }
 
     @Test
