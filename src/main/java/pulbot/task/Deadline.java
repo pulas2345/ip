@@ -1,19 +1,21 @@
 package pulbot.task;
 
-import pulbot.Pulbot;
-
 import java.time.LocalDateTime;
+
+import pulbot.Pulbot;
 
 /** Represents a task that must be completed by a specified date and time. */
 public class Deadline extends Task {
-    protected LocalDateTime by;
+    private final LocalDateTime by;
 
     public Deadline(String description, String by) {
         this(description, Pulbot.parseDateTime(by));
     }
 
+    /** Creates a deadline with an already parsed date and time. */
     public Deadline(String description, LocalDateTime by) {
         super(description, TaskType.DEADLINE);
+        assert by != null : "A deadline must have a parsed date and time";
         this.by = by;
     }
 
@@ -22,8 +24,8 @@ public class Deadline extends Task {
         return by;
     }
 
-    @Override
     /** Returns the user-facing representation including the deadline. */
+    @Override
     public String toString() {
         return super.toString() + " (by: " + Pulbot.formatDateTime(by) + ")";
     }

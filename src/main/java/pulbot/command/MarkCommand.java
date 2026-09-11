@@ -13,8 +13,8 @@ public class MarkCommand extends Command {
         this.taskNumber = taskNumber;
     }
 
-    @Override
     /** Marks the selected task and persists the updated list. */
+    @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws PulbotException {
         int index = getTaskIndex(taskNumber, tasks.size());
         tasks.get(index).markAsDone();

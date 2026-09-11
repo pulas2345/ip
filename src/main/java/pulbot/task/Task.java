@@ -2,15 +2,18 @@ package pulbot.task;
 
 /** Represents a task that can be stored and managed by Pulbot. */
 public class Task {
-    protected String description;
-    protected boolean isDone;
-    protected TaskType type;
+    private final String description;
+    private final TaskType type;
+    private boolean isDone;
 
     public Task(String description) {
         this(description, TaskType.TODO);
     }
 
     protected Task(String description, TaskType type) {
+        assert description != null && !description.isBlank()
+                : "Tasks must have a non-blank description after input validation";
+        assert type != null : "Every task must have a type";
         this.description = description;
         this.isDone = false;
         this.type = type;
@@ -46,8 +49,8 @@ public class Task {
         return isDone;
     }
 
-    @Override
     /** Returns the user-facing representation of this task. */
+    @Override
     public String toString() {
         return "[" + type.getIcon() + "][" + getStatusIcon() + "] " + description;
     }

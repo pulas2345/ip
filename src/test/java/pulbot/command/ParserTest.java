@@ -1,7 +1,7 @@
 package pulbot.command;
 
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDateTime;
@@ -54,10 +54,10 @@ public class ParserTest {
     public void parse_invalidDates_throwsException() {
         assertThrows(IllegalArgumentException.class, () -> parser.parse("on 2019-12-02"));
         assertThrows(IllegalArgumentException.class, () -> parser.parse("on 31/2/2019"));
-        assertThrows(IllegalArgumentException.class,
-                () -> parser.parse("deadline return book /by 31/2/2019 1800"));
-        assertThrows(IllegalArgumentException.class,
-                () -> parser.parse("event lecture /from tomorrow /to 2/12/2019 1600"));
+        assertThrows(IllegalArgumentException.class, () ->
+                parser.parse("deadline return book /by 31/2/2019 1800"));
+        assertThrows(IllegalArgumentException.class, () ->
+                parser.parse("event lecture /from tomorrow /to 2/12/2019 1600"));
     }
 
     @Test

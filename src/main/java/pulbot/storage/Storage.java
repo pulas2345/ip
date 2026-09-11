@@ -1,13 +1,5 @@
 package pulbot.storage;
 
-import pulbot.PulbotException;
-import pulbot.task.Deadline;
-import pulbot.task.Event;
-import pulbot.task.Task;
-import pulbot.task.TaskList;
-import pulbot.task.TaskType;
-import pulbot.task.Todo;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +9,14 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.Locale;
+
+import pulbot.PulbotException;
+import pulbot.task.Deadline;
+import pulbot.task.Event;
+import pulbot.task.Task;
+import pulbot.task.TaskList;
+import pulbot.task.TaskType;
+import pulbot.task.Todo;
 
 /** Handles loading tasks from and saving tasks to a file. */
 public class Storage {
@@ -42,48 +42,7 @@ public class Storage {
                 if (line.isBlank()) {
                     continue;
                 }
-                String[] columns = line.split("\t", -1);
-                String type = columns[0];
-                int expectedColumns = type.equals("T") ? 3 : type.equals("D") ? 4 : 5;
-                if (!type.equals("T") && !type.equals("D") && !type.equals("E")) {
-                    throw new PulbotException("Invalid task type in file: " + type);
-                }
-                if (columns.length != expectedColumns) {
-                    throw new PulbotException("Invalid line format in file: " + line);
-                }
-                String isMarked = columns[1];
-                if (!isMarked.equals("0") && !isMarked.equals("1")) {
-                    throw new PulbotException("Invalid mark status in file: " + isMarked);
-                }
-                String description = columns[2];
-                if (description.isBlank()) {
-                    throw new PulbotException("Task description cannot be empty.");
-                }
-                if (type.equals("D") && columns[3].isBlank()) {
-                    throw new PulbotException("Deadline date cannot be empty.");
-                }
-                if (type.equals("E") && (columns[3].isBlank() || columns[4].isBlank())) {
-                    throw new PulbotException("Event start and end times cannot be empty.");
-                }
-                Task task;
-                switch (type) {
-                case "T":
-                    task = new Todo(description);
-                    break;
-                case "D":
-                    task = new Deadline(description, parseStoredDateTime(columns[3]));
-                    break;
-                case "E":
-                    task = new Event(description,
-                            parseStoredDateTime(columns[3]), parseStoredDateTime(columns[4]));
-                    break;
-                default:
-                    throw new PulbotException("Invalid task type in file: " + type);
-                }
-                if (isMarked.equals("1")) {
-                    task.markAsDone();
-                }
-                tasks.add(task);
+                tasks.add(parseTask(line));
             }
         } catch (IllegalArgumentException e) {
             throw new PulbotException(e.getMessage());
@@ -95,6 +54,7 @@ public class Storage {
 
     /** Saves all tasks to disk in the application file format. */
     public void save(TaskList tasks) throws PulbotException {
+        assert tasks != null : "Storage can only save an initialized task list";
         try {
             Path parent = filePath.getParent();
             if (parent != null) {
@@ -133,5 +93,58 @@ public class Storage {
 
     private String formatDateTime(LocalDateTime value) {
         return value.format(STORED_DATE_FORMATTER);
+    }
+
+    /** Converts one validated storage line into a task. */
+    private Task parseTask(String line) throws PulbotException {
+        String[] columns = line.split("\t", -1);
+        String type = columns[0];
+        validateColumns(line, columns, type);
+
+        Task task = createTask(columns, type);
+        if (columns[1].equals("1")) {
+            task.markAsDone();
+        }
+        return task;
+    }
+
+    /** Checks that a storage line contains valid common and type-specific fields. */
+    private void validateColumns(String line, String[] columns, String type) throws PulbotException {
+        if (!type.equals("T") && !type.equals("D") && !type.equals("E")) {
+            throw new PulbotException("Invalid task type in file: " + type);
+        }
+        int expectedColumns = type.equals("T") ? 3 : type.equals("D") ? 4 : 5;
+        if (columns.length != expectedColumns) {
+            throw new PulbotException("Invalid line format in file: " + line);
+        }
+        String isMarked = columns[1];
+        if (!isMarked.equals("0") && !isMarked.equals("1")) {
+            throw new PulbotException("Invalid mark status in file: " + isMarked);
+        }
+        if (columns[2].isBlank()) {
+            throw new PulbotException("Task description cannot be empty.");
+        }
+        if (type.equals("D") && columns[3].isBlank()) {
+            throw new PulbotException("Deadline date cannot be empty.");
+        }
+        if (type.equals("E") && (columns[3].isBlank() || columns[4].isBlank())) {
+            throw new PulbotException("Event start and end times cannot be empty.");
+        }
+    }
+
+    /** Creates the task represented by validated storage columns. */
+    private Task createTask(String[] columns, String type) throws PulbotException {
+        String description = columns[2];
+        switch (type) {
+            case "T":
+                return new Todo(description);
+            case "D":
+                return new Deadline(description, parseStoredDateTime(columns[3]));
+            case "E":
+                return new Event(description,
+                        parseStoredDateTime(columns[3]), parseStoredDateTime(columns[4]));
+            default:
+                throw new PulbotException("Invalid task type in file: " + type);
+        }
     }
 }
