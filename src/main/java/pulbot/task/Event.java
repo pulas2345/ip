@@ -1,18 +1,19 @@
 package pulbot.task;
 
-import pulbot.Pulbot;
-
 import java.time.LocalDateTime;
+
+import pulbot.Pulbot;
 
 /** Represents a task that takes place during a date and time range. */
 public class Event extends Task {
-    protected LocalDateTime from;
-    protected LocalDateTime to;
+    private final LocalDateTime from;
+    private final LocalDateTime to;
 
     public Event(String description, String from, String to) {
         this(description, Pulbot.parseDateTime(from), Pulbot.parseDateTime(to));
     }
 
+    /** Creates an event with already parsed start and end date-times. */
     public Event(String description, LocalDateTime from, LocalDateTime to) {
         super(description, TaskType.EVENT);
         assert from != null : "An event must have a parsed start date and time";
@@ -31,8 +32,8 @@ public class Event extends Task {
         return to;
     }
 
-    @Override
     /** Returns the user-facing representation including the event range. */
+    @Override
     public String toString() {
         return super.toString() + " (from: " + Pulbot.formatDateTime(from)
                 + " to: " + Pulbot.formatDateTime(to) + ")";

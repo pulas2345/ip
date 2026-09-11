@@ -1,16 +1,16 @@
 package pulbot.ui;
 
-import pulbot.task.Deadline;
-import pulbot.task.Event;
-import pulbot.task.Task;
-import pulbot.task.TaskList;
-
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Scanner;
+
+import pulbot.task.Deadline;
+import pulbot.task.Event;
+import pulbot.task.Task;
+import pulbot.task.TaskList;
 
 /** Handles Pulbot's console input and output. */
 public class Ui {
@@ -157,7 +157,6 @@ public class Ui {
         }
     }
 
-    /** Displays deadlines and events occurring on the supplied date. */
     /** Displays tasks whose descriptions contain the supplied keyword. */
     public void showMatchingTasks(TaskList tasks, String keyword) {
         String normalizedKeyword = keyword.toLowerCase(Locale.ENGLISH);
@@ -177,6 +176,7 @@ public class Ui {
         }
     }
 
+    /** Displays deadlines and events occurring on the supplied date. */
     public void showTasksOnDate(TaskList tasks, LocalDate date) {
         boolean found = false;
         for (int i = 0; i < tasks.size(); i++) {
