@@ -70,9 +70,9 @@ public class TaskTest {
     }
 
     @Test
-    public void taskType_getIcon_returnsMatchingIcons() {
-        assertEquals("T", TaskType.TODO.getIcon());
-        assertEquals("D", TaskType.DEADLINE.getIcon());
-        assertEquals("E", TaskType.EVENT.getIcon());
+    public void taskType_getSymbol_returnsMatchingSymbols() {
+        assertEquals("T", TaskType.TODO.getSymbol());
+        assertEquals("D", TaskType.DEADLINE.getSymbol());
+        assertEquals("E", TaskType.EVENT.getSymbol());
     }
 }

@@ -6,14 +6,14 @@ public enum TaskType {
     DEADLINE("D"),
     EVENT("E");
 
-    private final String icon;
+    private final String symbol;
 
-    TaskType(String icon) {
-        this.icon = icon;
+    TaskType(String symbol) {
+        this.symbol = symbol;
     }
 
-    /** Returns the one-letter icon used when displaying this type. */
-    public String getIcon() {
-        return icon;
+    /** Returns the one-letter symbol used to display and store this type. */
+    public String getSymbol() {
+        return symbol;
     }
 }

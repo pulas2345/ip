@@ -21,7 +21,7 @@ public class Task {
 
     /** Returns the completion icon for this task. */
     public String getStatusIcon() {
-        return isDone ? "\u2713" : " "; // mark done task with tick
+        return isDone ? "\u2713" : " ";
     }
 
     /** Marks this task as completed. */
@@ -45,7 +45,7 @@ public class Task {
     }
 
     /** Returns whether this task is completed. */
-    public Boolean isDone() {
+    public boolean isDone() {
         return isDone;
     }
 
@@ -68,6 +68,6 @@ public class Task {
     /** Returns the user-facing representation of this task. */
     @Override
     public String toString() {
-        return "[" + type.getIcon() + "][" + getStatusIcon() + "] " + description;
+        return "[" + type.getSymbol() + "][" + getStatusIcon() + "] " + description;
     }
 }
