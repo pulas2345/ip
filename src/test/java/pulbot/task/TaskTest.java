@@ -70,6 +70,14 @@ public class TaskTest {
     }
 
     @Test
+    public void event_invalidDateRange_throwsException() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                new Event("lecture", "2/12/2019 1600", "2/12/2019 1400"));
+
+        assertEquals("The event end time must be after its start time.", exception.getMessage());
+    }
+
+    @Test
     public void taskType_getSymbol_returnsMatchingSymbols() {
         assertEquals("T", TaskType.TODO.getSymbol());
         assertEquals("D", TaskType.DEADLINE.getSymbol());

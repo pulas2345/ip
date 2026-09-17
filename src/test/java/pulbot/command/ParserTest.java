@@ -46,10 +46,43 @@ public class ParserTest {
 
     @Test
     public void parse_unknownCommand_throwsException() {
+        assertThrows(PulbotException.class, () -> parser.parse("   "));
         assertThrows(PulbotException.class, () -> parser.parse("unknown command"));
         assertThrows(PulbotException.class, () -> parser.parse("listing"));
         assertThrows(PulbotException.class, () -> parser.parse("bye now"));
         assertThrows(PulbotException.class, () -> parser.parse("list all"));
+    }
+
+    @Test
+    public void parse_accidentalWhitespace_returnsMatchingCommandTypes() throws PulbotException {
+        assertInstanceOf(ListCommand.class, parser.parse("  list  "));
+        assertInstanceOf(AddCommand.class, parser.parse("todo    read book"));
+        assertInstanceOf(AddCommand.class,
+                parser.parse("deadline report   /by   2/12/2019 1800"));
+        assertInstanceOf(AddCommand.class,
+                parser.parse("event class  /from  2/12/2019 1400   /to  2/12/2019 1600"));
+    }
+
+    @Test
+    public void parse_repeatedOrMisplacedMarkers_throwsHelpfulException() {
+        PulbotException repeatedBy = assertThrows(PulbotException.class, () ->
+                parser.parse("deadline report /by 2/12/2019 1800 /by 3/12/2019 1800"));
+        assertEquals("Please use: deadline <description> /by <when>.", repeatedBy.getMessage());
+
+        PulbotException reversedEventMarkers = assertThrows(PulbotException.class, () ->
+                parser.parse("event class /to 2/12/2019 1600 /from 2/12/2019 1400"));
+        assertEquals("Please use: event <description> /from <start> /to <end>.",
+                reversedEventMarkers.getMessage());
+    }
+
+    @Test
+    public void parse_eventWithInvalidDateRange_throwsException() {
+        IllegalArgumentException equalTimes = assertThrows(IllegalArgumentException.class, () ->
+                parser.parse("event class /from 2/12/2019 1400 /to 2/12/2019 1400"));
+        assertEquals("The event end time must be after its start time.", equalTimes.getMessage());
+
+        assertThrows(IllegalArgumentException.class, () ->
+                parser.parse("event class /from 2/12/2019 1600 /to 2/12/2019 1400"));
     }
 
     @Test

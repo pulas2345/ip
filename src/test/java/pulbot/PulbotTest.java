@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 
+import pulbot.storage.Storage;
+import pulbot.task.TaskList;
+
 /** Tests Pulbot's date and time conversion methods. */
 public class PulbotTest {
     @Test
@@ -58,5 +61,25 @@ public class PulbotTest {
         String displayed = output.toString(StandardCharsets.UTF_8);
         assertTrue(displayed.contains("Hello! I'm Pulbot."));
         assertTrue(displayed.contains("Bye."));
+    }
+
+    @Test
+    public void constructor_storageLoadFailure_retainsStartupWarning() {
+        Pulbot pulbot = new Pulbot(new FailingStorage());
+
+        assertTrue(pulbot.getStartupWarning().contains("Unable to load saved tasks"));
+        assertTrue(pulbot.getStartupWarning().contains("test failure"));
+    }
+
+    /** Simulates a storage failure without depending on the host file system. */
+    private static class FailingStorage extends Storage {
+        FailingStorage() {
+            super("unused");
+        }
+
+        @Override
+        public TaskList load() throws PulbotException {
+            throw new PulbotException("test failure");
+        }
     }
 }
