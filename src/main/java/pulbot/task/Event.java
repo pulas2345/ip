@@ -6,6 +6,8 @@ import pulbot.Pulbot;
 
 /** Represents a task that takes place during a date and time range. */
 public class Event extends Task {
+    private static final String INVALID_DATE_RANGE_MESSAGE =
+            "The event end time must be after its start time.";
     private final LocalDateTime from;
     private final LocalDateTime to;
 
@@ -18,6 +20,9 @@ public class Event extends Task {
         super(description, TaskType.EVENT);
         assert from != null : "An event must have a parsed start date and time";
         assert to != null : "An event must have a parsed end date and time";
+        if (!to.isAfter(from)) {
+            throw new IllegalArgumentException(INVALID_DATE_RANGE_MESSAGE);
+        }
         this.from = from;
         this.to = to;
     }

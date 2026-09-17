@@ -30,18 +30,33 @@ public class Pulbot {
     private final Parser parser;
     private final Storage storage;
     private final TaskList tasks;
+    private final String startupWarning;
 
     /** Creates Pulbot and loads its saved tasks. */
     public Pulbot() {
+        this(new Storage(DEFAULT_FILE_PATH));
+    }
+
+    /** Creates Pulbot with the supplied storage, primarily to support isolated tests. */
+    Pulbot(Storage storage) {
         parser = new Parser();
-        storage = new Storage(DEFAULT_FILE_PATH);
+        this.storage = storage;
         TaskList loadedTasks;
+        String loadingWarning = "";
         try {
             loadedTasks = storage.load();
         } catch (PulbotException e) {
             loadedTasks = new TaskList();
+            loadingWarning = "Unable to load saved tasks. Starting with an empty list. "
+                    + e.getMessage();
         }
         tasks = loadedTasks;
+        startupWarning = loadingWarning;
+    }
+
+    /** Returns a startup warning, or an empty string when saved tasks loaded successfully. */
+    String getStartupWarning() {
+        return startupWarning;
     }
 
     /** Runs Pulbot until the user enters the {@code bye} command. */

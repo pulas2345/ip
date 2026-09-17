@@ -45,6 +45,11 @@ public class MainWindow extends AnchorPane {
         this.pulbot = pulbot;
         DialogBox welcomeDialog = DialogBox.getPulbotDialog(Ui.getWelcomePrompt(), pulbotImage);
         dialogContainer.getChildren().add(welcomeDialog);
+        if (!pulbot.getStartupWarning().isEmpty()) {
+            DialogBox warningDialog = DialogBox.getPulbotDialog(
+                    pulbot.getStartupWarning(), pulbotImage);
+            dialogContainer.getChildren().add(warningDialog);
+        }
     }
 
     /**

@@ -93,7 +93,8 @@ public class StorageTest {
             "D\t0\tdeadline\t\n",
             "D\t0\tdeadline\tnot a date\n",
             "D\t0\tdeadline\tFeb 31 2019 6:00 PM\n",
-            "E\t0\tevent\tDec 02 2019 2:00 PM\t\n"
+            "E\t0\tevent\tDec 02 2019 2:00 PM\t\n",
+            "E\t0\tevent\tDec 02 2019 4:00 PM\tDec 02 2019 2:00 PM\n"
         };
 
         for (String invalidLine : invalidLines) {
