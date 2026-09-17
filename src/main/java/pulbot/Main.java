@@ -12,6 +12,7 @@ import javafx.stage.Stage;
  * A GUI for Pulbot using FXML.
  */
 public class Main extends Application {
+    private static final String PRODUCT_NAME = "Pulbot";
     private static final double MINIMUM_WINDOW_HEIGHT = 220;
     private static final double MINIMUM_WINDOW_WIDTH = 417;
 
@@ -24,6 +25,7 @@ public class Main extends Application {
             AnchorPane root = fxmlLoader.load();
             Scene scene = new Scene(root);
             stage.setScene(scene);
+            stage.setTitle(PRODUCT_NAME);
             stage.setMinHeight(MINIMUM_WINDOW_HEIGHT);
             stage.setMinWidth(MINIMUM_WINDOW_WIDTH);
             fxmlLoader.<MainWindow>getController().setPulbot(pulbot);
