@@ -9,15 +9,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import pulbot.storage.Storage;
 import pulbot.task.TaskList;
 
 /** Tests Pulbot's date and time conversion methods. */
 public class PulbotTest {
+    @TempDir
+    private Path tempDir;
+
     @Test
     public void parseDateTime_validInput_returnsDateTime() {
         LocalDateTime expected = LocalDateTime.of(2019, 12, 2, 18, 0);
@@ -69,6 +74,36 @@ public class PulbotTest {
 
         assertTrue(pulbot.getStartupWarning().contains("Unable to load saved tasks"));
         assertTrue(pulbot.getStartupWarning().contains("test failure"));
+    }
+
+    @Test
+    public void getResponse_commandSequence_updatesAndPersistsTasks() throws PulbotException {
+        Path dataFile = tempDir.resolve("data/pulbot.txt");
+        Storage storage = new Storage(dataFile.toString());
+        Pulbot pulbot = new Pulbot(storage);
+
+        String addResponse = pulbot.getResponse("todo read book");
+        String duplicateResponse = pulbot.getResponse("todo READ BOOK");
+        String markResponse = pulbot.getResponse("mark 1");
+        String listResponse = pulbot.getResponse("list");
+
+        assertTrue(addResponse.contains("I have added this task"));
+        assertTrue(duplicateResponse.contains("This task already exists"));
+        assertTrue(markResponse.contains("marked this task as done"));
+        assertTrue(listResponse.contains("1.[T][✓] read book"));
+        assertTrue(storage.load().get(0).isDone());
+    }
+
+    @Test
+    public void getResponse_invalidCommands_doNotCreateTasks() throws PulbotException {
+        Storage storage = new Storage(tempDir.resolve("tasks.txt").toString());
+        Pulbot pulbot = new Pulbot(storage);
+
+        assertTrue(pulbot.getResponse("todo").contains("Please include a description"));
+        assertTrue(pulbot.getResponse("mark 1").contains("There is no task with that number"));
+        assertTrue(pulbot.getResponse("event class /from 2/12/2019 1600 /to 2/12/2019 1400")
+                .contains("end time must be after"));
+        assertTrue(storage.load().isEmpty());
     }
 
     /** Simulates a storage failure without depending on the host file system. */

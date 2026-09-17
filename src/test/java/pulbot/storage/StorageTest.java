@@ -110,4 +110,15 @@ public class StorageTest {
 
         assertThrows(PulbotException.class, storage::load);
     }
+
+    @Test
+    public void save_directoryPath_throwsExceptionWithoutChangingTasks() {
+        Todo task = new Todo("read book");
+        TaskList tasks = new TaskList(List.of(task));
+        Storage storage = new Storage(tempDir.toString());
+
+        assertThrows(PulbotException.class, () -> storage.save(tasks));
+        assertEquals(1, tasks.size());
+        assertEquals("read book", tasks.get(0).getDescription());
+    }
 }
