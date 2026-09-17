@@ -92,10 +92,10 @@ Create a JAR that includes the JavaFX dependencies:
 ./gradlew shadowJar
 ```
 
-Gradle creates `build/libs/duke.jar`. Run it with JDK 25:
+Gradle creates `build/libs/Pulbot.jar`. Run it with JDK 25:
 
 ```shell
-java -jar build/libs/duke.jar
+java -jar build/libs/Pulbot.jar
 ```
 
 ## Run development checks
