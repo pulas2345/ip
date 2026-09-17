@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import pulbot.PulbotException;
 import pulbot.storage.Storage;
@@ -61,6 +64,39 @@ public class ParserTest {
                 parser.parse("deadline report   /by   2/12/2019 1800"));
         assertInstanceOf(AddCommand.class,
                 parser.parse("event class  /from  2/12/2019 1400   /to  2/12/2019 1600"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "todo     read book",
+        "  todo read book",
+        "todo read book  "
+    })
+    public void parse_todoWithWhitespaceVariants_returnsAddCommand(String input)
+            throws PulbotException {
+        assertInstanceOf(AddCommand.class, parser.parse(input));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "29/2/2024, 2024-02-29",
+        "1/1/2026, 2026-01-01",
+        "31/12/2026, 2026-12-31"
+    })
+    public void parse_validCalendarDate_returnsExpectedDate(String input, String expected)
+            throws PulbotException {
+        TaskList tasks = new TaskList();
+        RecordingDateUi ui = new RecordingDateUi();
+
+        parser.parse("on " + input).execute(tasks, ui, new NoOpStorage());
+
+        assertEquals(java.time.LocalDate.parse(expected), ui.displayedDate);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"29/2/2023", "31/4/2026", "0/1/2026", "1/13/2026"})
+    public void parse_invalidCalendarDate_throwsException(String input) {
+        assertThrows(IllegalArgumentException.class, () -> parser.parse("on " + input));
     }
 
     @Test
@@ -134,6 +170,16 @@ public class ParserTest {
         @Override
         public void save(TaskList tasks) {
             // Persistence is tested separately in StorageTest.
+        }
+    }
+
+    /** Records the date supplied by an on command. */
+    private static class RecordingDateUi extends Ui {
+        private java.time.LocalDate displayedDate;
+
+        @Override
+        public void showTasksOnDate(TaskList tasks, java.time.LocalDate date) {
+            displayedDate = date;
         }
     }
 }
