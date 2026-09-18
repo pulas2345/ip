@@ -34,6 +34,8 @@ public class Storage {
             DateTimeFormatter.ofPattern("MMM dd uuuu h:mm a", Locale.ENGLISH)
                     .withResolverStyle(ResolverStyle.STRICT);
     private final Path filePath;
+    /** Prevents an empty recovery session from overwriting data that could not be loaded. */
+    private boolean isSaveBlocked;
 
     /** Creates storage backed by the supplied file path. */
     public Storage(String filePath) {
@@ -43,9 +45,11 @@ public class Storage {
     /** Loads tasks from disk, returning an empty list when the file is absent. */
     public TaskList load() throws PulbotException {
         TaskList tasks = new TaskList();
-        if (!Files.exists(filePath)) {
+        if (Files.notExists(filePath)) {
+            isSaveBlocked = false;
             return tasks;
         }
+        isSaveBlocked = true;
         try (BufferedReader reader = Files.newBufferedReader(filePath)) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -59,17 +63,22 @@ public class Storage {
         } catch (IOException e) {
             throw new PulbotException("Error reading file: " + e.getMessage());
         }
+        isSaveBlocked = false;
         return tasks;
     }
 
     /** Saves all tasks to disk in the application file format. */
     public void save(TaskList tasks) throws PulbotException {
         assert tasks != null : "Storage can only save an initialized task list";
+        if (isSaveBlocked) {
+            throw new PulbotException("Saved data could not be loaded. Repair or move the data file, "
+                    + "then restart Pulbot before changing tasks. The original file has been preserved.");
+        }
         try {
             createParentDirectory();
             Files.writeString(filePath, serializeTasks(tasks));
         } catch (IOException e) {
-            throw new PulbotException("Error writing to file: " + e.getMessage());
+            throw new PulbotException("Error writing to file. Your task change was not saved: " + e.getMessage());
         }
     }
 
