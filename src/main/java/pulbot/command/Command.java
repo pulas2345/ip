@@ -2,6 +2,7 @@ package pulbot.command;
 
 import pulbot.PulbotException;
 import pulbot.storage.Storage;
+import pulbot.task.Task;
 import pulbot.task.TaskList;
 import pulbot.ui.Ui;
 
@@ -15,6 +16,22 @@ public abstract class Command {
         return false;
     }
 
+    /** Saves a completion change, restoring the previous status if saving fails. */
+    protected void saveCompletionChange(TaskList tasks, Task task, boolean wasDone, Storage storage)
+            throws PulbotException {
+        try {
+            storage.save(tasks);
+        } catch (PulbotException e) {
+            if (wasDone) {
+                task.markAsDone();
+            } else {
+                task.markAsNotDone();
+            }
+            throw e;
+        }
+    }
+
+    /** Converts a displayed task number to a validated zero-based list index. */
     protected int getTaskIndex(String number, int taskCount) throws PulbotException {
         try {
             int index = Integer.parseInt(number) - 1;

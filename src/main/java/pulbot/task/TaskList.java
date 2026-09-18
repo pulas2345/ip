@@ -33,6 +33,12 @@ public class TaskList implements Iterable<Task> {
         return tasks.remove(index);
     }
 
+    /** Restores a removed task at its original position when saving fails. */
+    public void insert(int index, Task task) {
+        assert task != null : "A task list cannot contain null tasks";
+        tasks.add(index, task);
+    }
+
     public int size() {
         return tasks.size();
     }

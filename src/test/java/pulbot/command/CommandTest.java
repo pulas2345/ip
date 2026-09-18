@@ -2,6 +2,7 @@ package pulbot.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -120,6 +121,61 @@ public class CommandTest {
         assertTrue(ui.byeShown);
         assertFalse(new ListCommand().isExit());
         assertTrue(new ExitCommand().isExit());
+    }
+
+    @Test
+    public void modifyingCommands_saveFailure_restoresTasksWithoutSuccessMessage() {
+        Task first = new Todo("first");
+        Task second = new Todo("second");
+        TaskList tasks = new TaskList(java.util.List.of(first, second));
+        Storage failingStorage = new FailingStorage();
+
+        assertThrows(PulbotException.class, () ->
+                new AddCommand(new Todo("third")).execute(tasks, ui, failingStorage));
+        assertThrows(PulbotException.class, () ->
+                new DeleteCommand("1").execute(tasks, ui, failingStorage));
+        assertThrows(PulbotException.class, () ->
+                new MarkCommand("2").execute(tasks, ui, failingStorage));
+        assertEquals(2, tasks.size());
+        assertSame(first, tasks.get(0));
+        assertSame(second, tasks.get(1));
+        assertFalse(second.isDone());
+
+        second.markAsDone();
+        assertThrows(PulbotException.class, () ->
+                new UnmarkCommand("2").execute(tasks, ui, failingStorage));
+        assertTrue(second.isDone());
+        assertNull(ui.addedTask);
+        assertNull(ui.deletedTask);
+        assertNull(ui.markedTask);
+        assertNull(ui.unmarkedTask);
+    }
+
+    @Test
+    public void completionCommands_saveFailure_preservesAlreadyRequestedStatus() {
+        Task task = new Todo("first");
+        TaskList tasks = new TaskList(java.util.List.of(task));
+        Storage failingStorage = new FailingStorage();
+
+        assertThrows(PulbotException.class, () ->
+                new UnmarkCommand("1").execute(tasks, ui, failingStorage));
+        assertFalse(task.isDone());
+        task.markAsDone();
+        assertThrows(PulbotException.class, () ->
+                new MarkCommand("1").execute(tasks, ui, failingStorage));
+        assertTrue(task.isDone());
+    }
+
+    /** Simulates an unwritable destination without depending on OS permissions. */
+    private static class FailingStorage extends Storage {
+        FailingStorage() {
+            super("unused");
+        }
+
+        @Override
+        public void save(TaskList tasks) throws PulbotException {
+            throw new PulbotException("Simulated write failure");
+        }
     }
 
     /** Records UI calls so command tests can focus on command behavior. */
