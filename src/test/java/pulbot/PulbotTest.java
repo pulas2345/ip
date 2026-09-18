@@ -1,24 +1,29 @@
 package pulbot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import pulbot.storage.Storage;
 import pulbot.task.TaskList;
 
-/** Tests Pulbot's date and time conversion methods. */
+/** Tests date conversion and complete command sessions with isolated storage. */
 public class PulbotTest {
     @TempDir
     private Path tempDir;
@@ -104,6 +109,37 @@ public class PulbotTest {
         assertTrue(pulbot.getResponse("event class /from 2/12/2019 1600 /to 2/12/2019 1400")
                 .contains("end time must be after"));
         assertTrue(storage.load().isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"todo read\tbook", "todo read\nbook", "todo read\rbook",
+        "deadline read\tbook /by 18/9/2026 1200",
+        "event read\tbook /from 18/9/2026 1200 /to 18/9/2026 1300"})
+    public void getResponse_storageDelimiters_rejectsWithoutCorruptingData(String input)
+            throws PulbotException {
+        Storage storage = new Storage(tempDir.resolve("tasks.txt").toString());
+        Pulbot pulbot = new Pulbot(storage);
+        pulbot.getResponse("todo original");
+
+        assertTrue(pulbot.getResponse(input).contains("ERROR"));
+        assertEquals(1, storage.load().size());
+        assertEquals("original", storage.load().get(0).getDescription());
+    }
+
+    @Test
+    public void getResponse_damagedStorage_preservesOriginalFile() throws IOException {
+        Path file = tempDir.resolve("tasks.txt");
+        String original = "T\t0\tvaluable task\ninvalid record\n";
+        Files.writeString(file, original);
+        Pulbot pulbot = new Pulbot(new Storage(file.toString()));
+
+        assertTrue(pulbot.getStartupWarning().contains("Unable to load saved tasks"));
+        String response = pulbot.getResponse("todo replacement");
+
+        assertTrue(response.contains("original file has been preserved"));
+        assertFalse(response.contains("I have added"));
+        assertEquals(original, Files.readString(file));
+        assertTrue(pulbot.getResponse("list").contains("empty"));
     }
 
     /** Simulates a storage failure without depending on the host file system. */

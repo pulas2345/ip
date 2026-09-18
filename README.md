@@ -131,6 +131,9 @@ Pulbot creates `data/pulbot.txt` when it first saves a task. The application
 manages this file automatically. Closing and reopening Pulbot reloads the saved
 tasks.
 
-If the file contains invalid data, the console application reports the error.
-The graphical application starts with an empty task list so that you can still
-use Pulbot.
+If saved data cannot be loaded, Pulbot reports a warning and blocks task changes to protect the original file. Back up and repair or move `data/pulbot.txt`, then restart Pulbot. If a save fails, the command reports an error and restores the in-memory task list.
+
+## Acknowledgments
+
+* This project is based on the [NUS CS2103/T iP starter template](https://github.com/NUS-CS2103-AY2627-S1/ip).
+* The JavaFX launcher, FXML controllers, and dialog layout adapt the [SE-EDU JavaFX tutorial](https://se-education.org/guides/tutorials/javaFx.html).

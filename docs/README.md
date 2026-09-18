@@ -38,6 +38,8 @@ time it runs.
 Use `d/M/yyyy HHmm` for a date and time, such as `18/9/2026 0930`. Use
 `d/M/yyyy` for a date by itself. Pulbot uses the computer's local time zone.
 
+Command words and markers are lowercase and case-sensitive. Descriptions cannot contain tabs or line breaks; use spaces instead.
+
 ## Managing tasks
 
 ### Adding a todo
@@ -77,7 +79,7 @@ Enter `list` to show every task. Pulbot numbers the tasks in display order; use
 those numbers with `mark`, `unmark`, and `delete`.
 
 Enter `find KEYWORD` to show tasks whose descriptions contain the keyword.
-Matching is case-insensitive:
+Matching is case-insensitive. Results keep their original task numbers from `list`, so the numbers may have gaps:
 
 ```text
 find report
@@ -135,10 +137,9 @@ impossible dates, repeated command markers, and event end times that are not
 after their start times. Accidental leading, trailing, or repeated whitespace
 between the command and its arguments is accepted.
 
-If Pulbot cannot read its saved-data file, it starts with an empty list and
-shows a warning. Correct or move the damaged `data/pulbot.txt` before adding new
-tasks if its previous contents are important, because new changes will save the
-current list.
+If Pulbot cannot read its saved-data file, it starts with an empty list, shows a warning, and blocks task changes to protect your saved data. Back up and repair or move `data/pulbot.txt`, then restart Pulbot before adding tasks.
+
+If saving fails, Pulbot reports an error and restores the in-memory task list. Check that the data folder is writable and has available space, then retry the command.
 
 ## Exiting safely
 

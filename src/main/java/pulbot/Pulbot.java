@@ -31,6 +31,7 @@ public class Pulbot {
     private final Storage storage;
     private final TaskList tasks;
     private final String startupWarning;
+    private boolean isExitRequested;
 
     /** Creates Pulbot and loads its saved tasks. */
     public Pulbot() {
@@ -107,12 +108,14 @@ public class Pulbot {
 
     /** Generates a response for the user's chat message. */
     public String getResponse(String input) {
+        isExitRequested = false;
         ByteArrayOutputStream responseBuffer = new ByteArrayOutputStream();
         try (PrintStream output = new PrintStream(responseBuffer, true, StandardCharsets.UTF_8)) {
             Ui ui = new Ui(InputStream.nullInputStream(), output);
             try {
                 Command command = parser.parse(input);
                 command.execute(tasks, ui, storage);
+                isExitRequested = command.isExit();
             } catch (PulbotException | IllegalArgumentException e) {
                 ui.showError(e.getMessage());
             } finally {
@@ -122,6 +125,11 @@ public class Pulbot {
         return responseBuffer.toString(StandardCharsets.UTF_8)
                 .replaceAll(ANSI_ESCAPE_SEQUENCE, "")
                 .strip();
+    }
+
+    /** Returns whether the last successfully executed chat command requested exit. */
+    public boolean isExitRequested() {
+        return isExitRequested;
     }
 
     /** Parses a date and time entered using Pulbot's command format. */

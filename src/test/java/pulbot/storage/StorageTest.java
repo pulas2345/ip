@@ -121,4 +121,20 @@ public class StorageTest {
         assertEquals(1, tasks.size());
         assertEquals("read book", tasks.get(0).getDescription());
     }
+
+    @Test
+    public void load_repairedFile_allowsSavingAgain() throws IOException, PulbotException {
+        Path file = tempDir.resolve("tasks.txt");
+        Files.writeString(file, "invalid");
+        Storage storage = new Storage(file.toString());
+        assertThrows(PulbotException.class, storage::load);
+        assertThrows(PulbotException.class, () -> storage.save(new TaskList()));
+
+        Files.writeString(file, "T\t0\trecovered task\n");
+        TaskList recovered = storage.load();
+        recovered.add(new Todo("new task"));
+        storage.save(recovered);
+
+        assertEquals(2, storage.load().size());
+    }
 }

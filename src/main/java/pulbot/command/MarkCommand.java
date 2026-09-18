@@ -17,8 +17,9 @@ public class MarkCommand extends Command {
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws PulbotException {
         int index = getTaskIndex(taskNumber, tasks.size());
+        boolean wasDone = tasks.get(index).isDone();
         tasks.get(index).markAsDone();
+        saveCompletionChange(tasks, tasks.get(index), wasDone, storage);
         ui.showMarked(tasks.get(index));
-        storage.save(tasks);
     }
 }
