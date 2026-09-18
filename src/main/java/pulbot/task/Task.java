@@ -14,6 +14,10 @@ public class Task {
         assert description != null && !description.isBlank()
                 : "Tasks must have a non-blank description after input validation";
         assert type != null : "Every task must have a type";
+        if (description.indexOf('\t') >= 0 || description.indexOf('\n') >= 0 || description.indexOf('\r') >= 0) {
+            throw new IllegalArgumentException(
+                    "Task descriptions cannot contain tabs or line breaks. Use spaces instead.");
+        }
         this.description = description;
         this.isDone = false;
         this.type = type;

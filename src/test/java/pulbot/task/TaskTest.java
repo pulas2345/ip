@@ -12,6 +12,17 @@ import org.junit.jupiter.api.Test;
 /** Tests task state changes and user-facing task representations. */
 public class TaskTest {
     @Test
+    public void constructor_storageDelimiters_throwsException() {
+        for (String description : new String[] {"read\tbook", "read\nbook", "read\rbook"}) {
+            assertThrows(IllegalArgumentException.class, () -> new Todo(description));
+            assertThrows(IllegalArgumentException.class, () ->
+                    new Deadline(description, "18/9/2026 1200"));
+            assertThrows(IllegalArgumentException.class, () ->
+                    new Event(description, "18/9/2026 1200", "18/9/2026 1300"));
+        }
+    }
+
+    @Test
     public void constructors_missingRequiredDetails_throwAssertionError() {
         assertThrows(AssertionError.class, () -> new Todo(" "));
         assertThrows(AssertionError.class, () ->
